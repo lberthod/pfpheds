@@ -13,7 +13,7 @@
           <label><input type="checkbox" value="PRO" v-model="selectedClasses"> PRO</label>
         </div>
         <div class="pfp-selection text-center mb-3">
-          <select v-model="selectedPFP" class="form-select" @change="generatePFPInfo">
+          <select v-model="selectedPFP" class="form-select w-50 mx-auto" @change="generatePFPInfo">
             <option disabled value="">Sélectionnez un PFP</option>
             <option value="PFP1A">PFP1A</option>
             <option value="PFP1B">PFP1B</option>
@@ -23,7 +23,7 @@
           </select>
         </div>
         <div class="text-center mb-3">
-          <input v-model="search" placeholder="Recherche par nom ou prénom" class="form-control search-input">
+          <input v-model="search" placeholder="Recherche par nom ou prénom" class="form-control search-input w-50 mx-auto">
         </div>
       </div>
 
@@ -33,11 +33,11 @@
             <tr>
               <th scope="col" class="border-0 rounded-start">Nom</th>
               <th scope="col" class="border-0">Prénom</th>
-              <th scope="col" class="border-0">Répondant HES</th>
               <th scope="col" class="border-0">SAE</th>
               <th scope="col" class="border-0">Lesé</th>
               <th scope="col" class="border-0">Cas particulier</th>
               <th scope="col" class="border-0">Remarque</th>
+              <th scope="col" class="border-0">Place de stage</th>
               <th scope="col" class="border-0 rounded-end">Action</th>
             </tr>
           </thead>
@@ -45,11 +45,16 @@
             <tr v-for="etudiant in filteredEtudiants" :key="etudiant.id">
               <td>{{ etudiant.Nom }}</td>
               <td>{{ etudiant.Prenom }}</td>
-              <td>{{ etudiant.responsableDeStage }}</td>
-              <td><input type="checkbox" v-model="etudiant.PFPinfo[selectedPFP].SAE" @change="updateStudent(etudiant)"></td>
-              <td><input type="checkbox" v-model="etudiant.PFPinfo[selectedPFP].Lese" @change="updateStudent(etudiant)"></td>
-              <td><input type="checkbox" v-model="etudiant.PFPinfo[selectedPFP].CasParticulier" @change="updateStudent(etudiant)"></td>
-              <td><input type="text" v-model="etudiant.PFPinfo[selectedPFP].Remarque" @change="updateStudent(etudiant)"></td>
+              <td><input type="checkbox" v-model="etudiant.PFPinfo[selectedPFP].SAE" @change="updateStudent(etudiant, 'SAE', etudiant.PFPinfo[selectedPFP].SAE)"></td>
+              <td><input type="checkbox" v-model="etudiant.PFPinfo[selectedPFP].Lese" @change="updateStudent(etudiant, 'Lese', etudiant.PFPinfo[selectedPFP].Lese)"></td>
+              <td><input type="checkbox" v-model="etudiant.PFPinfo[selectedPFP].CasParticulier" @change="updateStudent(etudiant, 'CasParticulier', etudiant.PFPinfo[selectedPFP].CasParticulier)"></td>
+              <td><input type="text" v-model="etudiant.PFPinfo[selectedPFP].Remarque" @change="updateStudent(etudiant, 'Remarque', etudiant.PFPinfo[selectedPFP].Remarque)"></td>
+              <td>
+                <select v-model="etudiant.PFPinfo[selectedPFP].PlaceDeStage" @change="updateStudent(etudiant, 'PlaceDeStage', etudiant.PFPinfo[selectedPFP].PlaceDeStage)">
+                  <option disabled value="">Sélectionnez une place de stage</option>
+                  <option v-for="name in pfp3Names" :key="name" :value="name">{{ name }}</option>
+                </select>
+              </td>
               <td><button class="btn btn-sm btn-danger me-1 mb-1 mb-md-0" @click="deleteStudent(etudiant.id, etudiant.Classe)">Supprimer</button></td>
             </tr>
           </tbody>
@@ -87,6 +92,7 @@ export default {
       selectedClasses: [],
       search: '',
       selectedPFP: '',
+      pfp3Names: [],
       loading: true,
       globalFilter: ''
     };
@@ -116,6 +122,7 @@ export default {
     },
     selectedPFP(newPFP) {
       this.fetchStudentsData();
+      this.fetchPFP3Names();
     }
   },
   methods: {
@@ -123,6 +130,8 @@ export default {
       if (!this.selectedPFP || this.selectedClasses.length === 0) return;
 
       this.etudiants = [];
+      this.loading = true;
+
       for (const classe of this.selectedClasses) {
         const starCountRef = ref(db, `students/${classe}`);
         onValue(starCountRef, (snapshot) => {
@@ -136,18 +145,34 @@ export default {
                   SAE: false,
                   Lese: false,
                   CasParticulier: false,
-                  Remarque: ''
+                  Remarque: '',
+                  PlaceDeStage: ''
                 }
               },
               ...studentsData[key]
             }));
-            this.etudiants = [...this.etudiants, ...transformedData];
+            this.etudiants = [...this.etudiants.filter(etudiant => etudiant.Classe !== classe), ...transformedData];
           }
         });
       }
       this.loading = false;
     },
-    updateStudent(etudiant) {
+    async fetchPFP3Names() {
+      if (this.selectedPFP === 'PFP3') {
+        const pfp3Ref = ref(db, 'PFP3');
+        onValue(pfp3Ref, (snapshot) => {
+          const pfp3Data = snapshot.val();
+          if (pfp3Data) {
+            this.pfp3Names = Object.values(pfp3Data).map(pfp => pfp.Name);
+          }
+        });
+      }
+    },
+    updateStudent(etudiant, key, value) {
+      // Mettez à jour la valeur localement
+      etudiant.PFPinfo[this.selectedPFP][key] = value;
+
+      // Mettre à jour la base de données
       const studentRef = ref(db, `students/${etudiant.Classe}/${etudiant.id}`);
       set(studentRef, etudiant);
     },
@@ -185,7 +210,8 @@ export default {
             SAE: false,
             Lese: false,
             CasParticulier: false,
-            Remarque: ''
+            Remarque: '',
+            PlaceDeStage: ''
           };
           this.updateStudent(etudiant);
         }
@@ -222,7 +248,7 @@ export default {
 }
 
 .pfp-selection select {
-  width: 50%;
+  width: 100%;
   max-width: 300px;
   margin: 0 auto;
   display: block;
@@ -235,6 +261,11 @@ export default {
   display: block;
 }
 
+.table-responsive {
+  display: flex;
+  justify-content: center;
+}
+
 .table-striped {
   background-color: #fff;
   color: #333;
@@ -243,6 +274,8 @@ export default {
 
 .table-striped th, .table-striped td {
   border-color: #ddd;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .table-striped tbody tr:nth-of-type(odd) {
@@ -280,5 +313,9 @@ export default {
 
 .mt-4 {
   margin-top: 1.5rem !important;
+}
+
+.text-center {
+  text-align: center;
 }
 </style>

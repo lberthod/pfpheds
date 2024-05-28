@@ -51,13 +51,13 @@
         <Column field="NomPlace" header="Secteur" />
         <Column field="Langue.FR" header="FR">
           <template #body="slotProps">
-            <span v-if="slotProps.data.Langue.FR">&#9989;</span>
+            <span v-if="slotProps.data.FR">&#9989;</span>
             <span v-else>&#10060;</span>
           </template>
         </Column>
         <Column field="Langue.ALL" header="DE">
           <template #body="slotProps">
-            <span v-if="slotProps.data.Langue.ALL">&#9989;</span>
+            <span v-if="slotProps.data.ALL">&#9989;</span>
             <span v-else>&#10060;</span>
           </template>
         </Column>
@@ -160,6 +160,7 @@ export default {
     const studentData = vueRef(null);
     const choixUtilisateur = vueRef({});
     const totalChoixParStage = vueRef({});
+    const maxChoix = vueRef(5);
 
     const fetchUserChoices = () => {
       if (!user.value) {
@@ -194,9 +195,6 @@ export default {
       const userId = user.value.uid;
       const choixPath = `/choicePFP4/${userId}/choix`;
       const choixUtilisateurValue = choixUtilisateur.value;
-      console.log("-------------aaa----------");
-      console.log(choixUtilisateurValue);
-      console.log("--------------aaaa---------");
 
       let choixAEnvoyer = {};
       for (const [cle, estChoisi] of Object.entries(choixUtilisateurValue)) {
@@ -263,7 +261,7 @@ export default {
 
     const fetchStagesData = () => {
       const db = getDatabase();
-      const stagesRef = ref(db, '/PFP4');
+      const stagesRef = ref(db, '/PFP3');
       get(stagesRef).then((snapshot) => {
         if (snapshot.exists()) {
           stages.value = Object.values(snapshot.val());
@@ -325,24 +323,24 @@ export default {
       const cleChoix = `${stageIndex}-${choixIndex}`;
       const etatActuel = choixUtilisateur.value[cleChoix] || false;
 
-      const nouvelEtat = {};
+      if (etatActuel) {
+        choixUtilisateur.value[cleChoix] = false;
+      } else {
+        const totalChoix = Object.values(choixUtilisateur.value).filter(val => val).length;
+        if (totalChoix >= maxChoix.value) {
+          alert(`Vous ne pouvez sélectionner que ${maxChoix.value} choix au total.`);
+          return;
+        }
 
-      for (let n = 1; n <= 5; n++) {
-        const cle = `${stageIndex}-${n}`;
-        nouvelEtat[cle] = false;
+        Object.keys(choixUtilisateur.value).forEach(cle => {
+          const [index, choix] = cle.split('-');
+          if (index == stageIndex || choix == choixIndex) {
+            choixUtilisateur.value[cle] = false;
+          }
+        });
+
+        choixUtilisateur.value[cleChoix] = true;
       }
-
-      stages.value.forEach((_, idx) => {
-        const cle = `${idx}-${choixIndex}`;
-        nouvelEtat[cle] = false;
-      });
-
-      if (!etatActuel) {
-        nouvelEtat[cleChoix] = true;
-      }
-
-      choixUtilisateur.value = { ...choixUtilisateur.value, ...nouvelEtat };
-      calculerTotalChoix();
     };
 
     onMounted(() => {

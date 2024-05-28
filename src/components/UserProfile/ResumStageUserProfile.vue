@@ -30,7 +30,7 @@
                   <td :class="getClass(userProfile.MSQ)">{{ formatValue(userProfile.MSQ) }}</td>
                   <td :class="getClass(userProfile.SYSINT)">{{ formatValue(userProfile.SYSINT) }}</td>
                   <td :class="getClass(userProfile.NEUROGER)">{{ formatValue(userProfile.NEUROGER) }}</td>
-                  <td :class="getClass(userProfile.REA)">{{ formatValue(userProfile.REA) }}</td>
+                  <td :class="getClass(userProfile.REHAB)">{{ formatValue(userProfile.REHAB) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -138,8 +138,11 @@ const fetchUserProfile = async (email) => {
 
 const getSecteurs = (info) => {
   const secteurs = [];
-  if (info.NEUROGER === 1) secteurs.push('Neuroger');
-  if (info.REHAB === 1) secteurs.push('Rehab');
+  if (info.NEUROGER === 1) secteurs.push('NEUROGER');
+  if (info.REHAB === 1) secteurs.push('REHAB');
+  if (info.AIGU === 1) secteurs.push('AIGU');
+  if (info.MSQ === 1) secteurs.push('MSQ');
+  if (info.SYSINT === 1) secteurs.push('SYSINT');
   // Ajoutez ici d'autres secteurs si nécessaire
   return secteurs.join(', ');
 };

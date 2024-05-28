@@ -51,7 +51,6 @@
         <DocumentsUserProfile v-if="activeTab === 1" />
         <ResumStageUserProfile v-if="activeTab === 2" />
         <ChatProfil v-if="activeTab === 3" />
-        <Calendar v-if="activeTab === 4" />
       </div>
     </div>
   </div>
@@ -93,7 +92,7 @@ export default {
       // Ajoutez plus de pays selon vos besoins
     ];
 
-    const sidebarIcons = ['pi-home', 'pi-folder', 'pi-users', 'pi-comments', 'pi-calendar'];
+    const sidebarIcons = ['pi-home', 'pi-folder', 'pi-users', 'pi-comments'];
     const topMenu = [
       { icon: 'pi-inbox', label: 'Inbox' },
       { icon: 'pi-bell', label: 'Notifications', badge: true },
