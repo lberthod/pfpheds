@@ -1,0 +1,20 @@
+{
+  "hosting": [
+    {
+      "target": "public",
+      "public": "public-site/dist",
+      "ignore": [
+        "**/.*",
+        "**/node_modules/**"
+      ]
+    },
+    {
+      "target": "faq",
+      "public": "admin-site/dist",
+      "ignore": [
+        "**/.*",
+        "**/node_modules/**"
+      ]
+    }
+  ]
+}
