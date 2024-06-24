@@ -3,11 +3,10 @@
     <Navbar />
     <UserProfile />
     <div class="container-fluid mt-4">
-
       <div v-if="currentStudent && selectedPFP && selectedClass" class="table-responsive mt-4">
         <div v-if="validationMessage" class="mt-4 text-center">
           <h4>Validation</h4>
-          <p> A besoin de : {{ validationMessage }}</p>
+          <p>A besoin de : {{ validationMessage }}</p>
         </div>
       </div>
       <div v-if="selectedPFP && selectedClass" class="table-responsive mt-4">
@@ -27,7 +26,12 @@
                 <th>SYSINT</th>
                 <th>Neuroger</th>
                 <th>AMBU</th>
-                <th>Choisir</th>
+                <th>Choix 1</th>
+                <th>Choix 2</th>
+                <th>Choix 3</th>
+                <th>Choix 4</th>
+                <th>Choix 5</th>
+                <th>Total Étudiants</th>
               </tr>
             </thead>
             <tbody>
@@ -51,39 +55,47 @@
                 <td v-else>&#10060;</td>
                 <td v-if="stage.AMBU != ''">&#9989;</td>
                 <td v-else>&#10060;</td>
-                <td>
-                  <input type="radio" :name="'stage-selection'" @change="selectStage(stage)">
+                <td v-for="choice in [1, 2, 3, 4, 5]" :key="choice">
+                  <input type="checkbox" :checked="isSelected(stage, choice)" :disabled="isNonSelectable(stage, choice)"
+                    @change="selectStage(stage, choice, index)" class="checkbox-choice">
                 </td>
+                <td>{{ getTotalStudents(stage) }}</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- Section to display voting result -->
-      <div v-if="voteResult" class="mt-4 text-center">
-        <h4>Choix du   Vote</h4>
-        <p>Stage Sélectionné : {{ voteResult.selectedStageName }}</p>
-        <p>Lieu : {{ voteResult.selectedStageLieu }}</p>
-        <p>Domaine : {{ voteResult.selectedStageDomaine }}</p>
+      <div v-if="selectedStages.length > 0" class="mt-4 text-center">
+        <h4>Stages sélectionnés</h4>
+        <ul>
+          <li v-for="choice in [1, 2, 3, 4, 5]" :key="choice">
+            Choix {{ choice }}:
+            <span v-if="selectedStages[choice - 1]">
+              {{ selectedStages[choice - 1].name }} ({{ selectedStages[choice - 1].lieu }})
+            </span>
+            <span v-else>Aucun</span>
+          </li>
+        </ul>
       </div>
 
       <div class="mt-4 text-center">
         <button class="btn btn-primary" @click="submitVotes">Voter</button>
       </div>
-      <br> <br> <br> <br>
+      <br /><br /><br /><br />
     </div>
   </div>
 </template>
+
 <script>
 import { db, auth } from '../../../../firebase.js';
 import { ref, onValue, set, get } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from '@/components/Utils/Navbar.vue';
-import UserProfile from './UserProfile.vue'
+import UserProfile from './UserProfile.vue';
 
 export default {
-  name: "VotationLese",
+  name: "VotationView",
   components: {
     Navbar,
     UserProfile
@@ -95,7 +107,7 @@ export default {
       search: '',
       selectedPFP: 'PFP4',
       stages: [],
-      selectedStage: null,
+      selectedStages: Array(5).fill(null),
       currentStudent: null,
       currentUserEmail: null,
       validationMessage: null,
@@ -103,58 +115,19 @@ export default {
       languageIssue: null,
       pfp1: [],
       pfp2: [],
-      voteResult: null, // Added data property to store vote result
+      voteResult: null,
+      choiceTable: []
     };
   },
   computed: {
     filteredStages() {
       return this.stages.filter(stage => this.isStageVisible(stage));
+    },
+    totalChecked() {
+      return this.selectedStages.filter(stage => stage !== null).length;
     }
   },
-
   methods: {
-    async submitVotes() {
-      console.log("start");
-      if (this.selectedStage && this.currentStudent) {
-        const { id } = this.currentStudent;
-        if (id) {
-          const votationRef = ref(db, `votation_lese/${id}`);
-
-          console.log("Selected Stage:", this.selectedStage);
-          console.log("Current Student:", this.currentStudent);
-          console.log("Submitting votes..." + id);
-          const votationData = {
-            studentId: id,
-            studentName: this.currentStudent.Nom,
-            studentFirstName: this.currentStudent.Prenom,
-            selectedStageName: this.selectedStage.NomPlace,
-            selectedStageLieu: this.selectedStage.Lieu,
-            selectedStageDomaine: this.selectedStage.Domaine,
-            selectedStageDetails: {
-              FR: this.selectedStage.FR,
-              ALL: this.selectedStage.ALL,
-              AIGU: this.selectedStage.AIGU,
-              REHAB: this.selectedStage.REHAB,
-              MSQ: this.selectedStage.MSQ,
-              SYSINT: this.selectedStage.SYSINT,
-              NEUROGER: this.selectedStage.NEUROGER,
-              AMBU: this.selectedStage.AMBU
-            }
-          };
-
-          await set(votationRef, votationData);
-          console.log("Votes enregistrés avec succès!");
-
-          // Update voteResult data property
-          this.voteResult = votationData;
-        } else {
-          alert("Erreur: Informations de l'étudiant manquantes.");
-        }
-      } else {
-        alert("Veuillez sélectionner une place de stage.");
-      }
-    },
-
     async fetchStudentsData() {
       if (!this.selectedPFP || !this.selectedClass) return;
 
@@ -174,11 +147,13 @@ export default {
         }
       });
     },
+
     async fetchStagesData() {
       const dbRef = ref(db, '/PFP4-B22');
       onValue(dbRef, (snapshot) => {
         if (snapshot.exists()) {
           this.stages = Object.values(snapshot.val());
+          this.initializeChoiceTable();
         } else {
           console.log("No stages data available");
         }
@@ -186,20 +161,95 @@ export default {
         console.error("Error fetching stages data:", error);
       });
     },
+
+    initializeChoiceTable() {
+      this.choiceTable = this.stages.map(stage => ({
+        id: stage.IDENTIFIANT,
+        choices: Array(5).fill(0)
+      }));
+    },
+
     updateStudent(etudiant) {
       const studentRef = ref(db, `students/${etudiant.Classe}/${etudiant.id}`);
       set(studentRef, etudiant);
     },
-    selectStage(stage) {
-      this.selectedStage = stage;
-      for (const etudiant of this.etudiants) {
-        if (!etudiant.PFPinfo[this.selectedPFP]) {
-          etudiant.PFPinfo[this.selectedPFP] = {};
+
+    selectStage(stage, choice, stageIndex) {
+      const isCurrentlyChecked = this.isSelected(stage, choice);
+
+      if (!isCurrentlyChecked) {
+        if (this.totalChecked >= 5) {
+          console.log("Vous ne pouvez pas sélectionner plus de 5 stages.");
+          return;
         }
-        etudiant.PFPinfo[this.selectedPFP].selectedStageName = `${stage.NomPlace} - ${stage.Lieu}`;
-        etudiant.PFPinfo[this.selectedPFP].selectedStageId = stage.id;
-        this.updateStudent(etudiant);
+
+        if (this.selectedStages[choice - 1] !== null) {
+          console.log("Vous avez déjà sélectionné un stage pour ce choix.");
+          return;
+        }
+
+        console.log(`Vous avez sélectionné le stage ${stage.NomPlace} pour le choix ${choice}.`);
+
+        this.selectedStages[choice - 1] = {
+          id: stage.IDENTIFIANT,
+          name: stage.NomPlace,
+          lieu: stage.Lieu,
+          domaine: stage.Domaine,
+          choice: choice
+        };
+
+        this.choiceTable[stageIndex].choices[choice - 1] = 1;
+      } else {
+        this.selectedStages[choice - 1] = null;
+        this.choiceTable[stageIndex].choices[choice - 1] = 0;
       }
+
+      console.log(this.choiceTable);
+
+      this.updateVotationDB(
+        this.currentStudent.id,
+        this.currentStudent.Nom,
+        this.currentStudent.Prenom,
+        this.selectedStages
+      );
+    },
+
+    async updateVotationDB(studentId, studentName, studentFirstName, selectedStages) {
+      if (studentId) {
+        const votationRef = ref(db, `votationPFP4-B33/${studentId}`);
+        const votationData = {
+          studentId: studentId,
+          studentName: studentName,
+          studentFirstName: studentFirstName,
+          selectedStages: selectedStages.map(stage => ({
+            selectedStageName: stage.name,
+            selectedStageLieu: stage.lieu,
+            selectedStageDomaine: stage.domaine,
+            choice: stage.choice
+          }))
+        };
+
+        await set(votationRef, votationData);
+        console.log("Votation data updated successfully!");
+      } else {
+        console.log("Erreur: Informations de l'étudiant manquantes.");
+      }
+    },
+
+    isSelected(stage, choice) {
+      return (
+        this.selectedStages[choice - 1] &&
+        this.selectedStages[choice - 1].id === stage.IDENTIFIANT &&
+        this.selectedStages[choice - 1].choice === choice
+      );
+    },
+
+    isNonSelectable(stage, choice) {
+      const stageIndex = this.stages.findIndex(s => s.IDENTIFIANT === stage.IDENTIFIANT);
+      return this.choiceTable[stageIndex].choices[choice - 1] === 1;
+    },
+    getTotalStudents(stage) {
+      return this.etudiants.filter(student => student.selectedStages && student.selectedStages.some(s => s.id === stage.IDENTIFIANT)).length;
     },
 
     async findCurrentStudent() {
@@ -218,11 +268,9 @@ export default {
                   ...student
                 };
                 this.checkValidation();
-                console.log("Current User Email:", this.currentUserEmail);
-                console.log("Matching Student:", this.currentStudent);
                 this.pfp1 = this.currentStudent.PFP1_info.IDA;
                 this.pfp2 = this.currentStudent.PFP2_info.IDA;
-                await this.fetchVoteResult(this.currentStudent.id); // Fetch the vote result when the student is found
+                await this.fetchVoteResult(this.currentStudent.id);
                 return;
               }
             }
@@ -231,6 +279,7 @@ export default {
         console.log("No matching student found.");
       }
     },
+
     async fetchVoteResult(studentId) {
       const votationRef = ref(db, `votation_lese/${studentId}`);
       const snapshot = await get(votationRef);
@@ -238,6 +287,7 @@ export default {
         this.voteResult = snapshot.val();
       }
     },
+
     checkValidation() {
       if (!this.currentStudent) return;
 
@@ -247,7 +297,6 @@ export default {
       this.languageIssue = null;
 
       if (FR == "0" && ALL == "0" && AMBU == "0" && MSQ == "0" && SYSINT == "0" && NEUROGER == "0" && REHAB == "0" && AIGU == "0") {
-        // All fields are 0, all checkboxes usable
         this.validationMessage = "Toutes les options sont disponibles";
         return;
       }
@@ -270,30 +319,11 @@ export default {
         this.validationMessage = "Tout validé";
       }
     },
+
     isStageVisible(stage) {
-      // Check if the stage is already taken by another student
       if (stage.takenBy) {
         return false;
       }
-
-      if (this.pfp1 == stage.Identifiant || this.pfp2 == stage.Identifiant) {
-        return false;
-      }
-
-      if (this.languageIssue) {
-        if (this.languageIssue === 'FR' && stage.FR === 'true') {
-          return true;
-        }
-        if (this.languageIssue == 'ALL' && stage.ALL === true) {
-          return true;
-        }
-        return false;
-      }
-
-      if (this.missingFields.length > 0) {
-        return this.missingFields.some(field => stage[field] === '1');
-      }
-
       return true;
     }
   },
@@ -312,85 +342,3 @@ export default {
   }
 };
 </script>
-
-
-
-
-
-<style scoped>
-.search-elements {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.class-selection select,
-.pfp-selection select,
-.search-input {
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.table-dark-gray {
-  background-color: #343a40;
-  color: #fff;
-}
-
-.table-dark-gray th,
-.table-dark-gray td {
-  border-color: #454d55;
-}
-
-.table-striped th,
-.table-striped td {
-  text-align: center;
-  vertical-align: middle;
-}
-
-.table-responsive {
-  overflow-x: auto;
-}
-
-.table-hover tbody tr:hover {
-  background-color: #f1f1f1;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  border-color: #007bff;
-  margin-top: 10px;
-}
-
-.btn-primary:hover {
-  background-color: #0056b3;
-  border-color: #004085;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.mt-3 {
-  margin-top: 1rem !important;
-}
-
-.mt-4 {
-  margin-top: 1.5rem !important;
-}
-
-.text-danger {
-  color: red !important;
-}
-
-.table-responsive {
-  display: flex;
-  justify-content: center;
-}
-
-.table-striped {
-  width: 80%;
-  margin: 0 auto;
-}
-</style>

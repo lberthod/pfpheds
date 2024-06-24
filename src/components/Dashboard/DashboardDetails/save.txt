@@ -23,8 +23,7 @@
           </select>
         </div>
         <div class="text-center mb-3">
-          <input v-model="search" placeholder="Recherche par nom ou prénom"
-            class="form-control search-input w-50 mx-auto">
+          <input v-model="search" placeholder="Recherche par nom ou prénom" class="form-control search-input w-50 mx-auto">
         </div>
       </div>
 
@@ -54,25 +53,16 @@
             <tr v-for="etudiant in filteredEtudiants" :key="etudiant.IDStudent">
               <td>{{ etudiant.Nom }}</td>
               <td>{{ etudiant.Prenom }}</td>
-              <td><input type="checkbox" v-model="etudiant.SAE" @change="updateStudent(etudiant, 'SAE', etudiant.SAE)"
-                  :disabled="etudiant.validated"></td>
-              <td><input type="checkbox" v-model="etudiant.Lese"
-                  @change="updateStudent(etudiant, 'Lese', etudiant.Lese)" :disabled="etudiant.validated"></td>
-              <td><input type="checkbox" v-model="etudiant.CasParticulier"
-                  @change="updateStudent(etudiant, 'CasParticulier', etudiant.CasParticulier)"
-                  :disabled="etudiant.validated"></td>
-              <td><input type="text" v-model="etudiant.Remarque"
-                  @change="updateStudent(etudiant, 'Remarque', etudiant.Remarque)" :disabled="etudiant.validated"></td>
+              <td><input type="checkbox" v-model="etudiant.SAE" @change="updateStudent(etudiant, 'SAE', etudiant.SAE)" :disabled="etudiant.validated"></td>
+              <td><input type="checkbox" v-model="etudiant.Lese" @change="updateStudent(etudiant, 'Lese', etudiant.Lese)" :disabled="etudiant.validated"></td>
+              <td><input type="checkbox" v-model="etudiant.CasParticulier" @change="updateStudent(etudiant, 'CasParticulier', etudiant.CasParticulier)" :disabled="etudiant.validated"></td>
+              <td><input type="text" v-model="etudiant.Remarque" @change="updateStudent(etudiant, 'Remarque', etudiant.Remarque)" :disabled="etudiant.validated"></td>
               <td>
-                <select v-model="etudiant.PFPinfo[selectedPFP].PlaceDeStage" @change="handlePlaceChange(etudiant)"
-                  :disabled="etudiant.validated">
+                <select v-model="etudiant.PFPinfo[selectedPFP].PlaceDeStage" @change="updateStudent(etudiant, 'PlaceDeStage', etudiant.PFPinfo[selectedPFP].PlaceDeStage)" :disabled="etudiant.validated">
                   <option disabled value="">Sélectionnez une place de stage</option>
-                  <option v-for="place in places" :key="place.IDENTIFIANT" :value="place.NomP"
-                    :disabled="isPlaceTaken(place)">{{ place.NomP }}</option>
+                  <option v-for="place in availablePlaces" :key="place.IDENTIFIANT" :value="place.NomP">{{ place.NomP }}</option>
                 </select>
               </td>
-
-
               <td :class="getClass(etudiant.MSQ)">{{ etudiant.MSQ }}</td>
               <td :class="getClass(etudiant.SYSINT)">{{ etudiant.SYSINT }}</td>
               <td :class="getClass(etudiant.NEUROGER)">{{ etudiant.NEUROGER }}</td>
@@ -82,8 +72,8 @@
               <td :class="getClass(etudiant.FR)">{{ etudiant.FR }}</td>
               <td :class="getClass(etudiant.ALL)">{{ etudiant.ALL }}</td>
               <td>
-                <button class="btn btn-sm btn-success me-1 mb-1 mb-md-0" @click="validateStudent(etudiant)">{{
-                  etudiant.validated ? 'Dévalider' : 'Valider' }}</button>
+                <button class="btn btn-sm btn-danger me-1 mb-1 mb-md-0" @click="deleteStudent(etudiant.IDStudent, etudiant.Classe)">Supprimer</button>
+                <button class="btn btn-sm btn-success me-1 mb-1 mb-md-0" @click="validateStudent(etudiant)" :disabled="etudiant.validated">Valider</button>
               </td>
             </tr>
           </tbody>
@@ -104,7 +94,6 @@
     </div>
   </div>
 </template>
-
 
 <script>
 import Navbar from '@/components/Utils/Navbar.vue';
@@ -150,6 +139,9 @@ export default {
     },
     totalCasParticulier() {
       return this.filteredEtudiants.filter(etudiant => etudiant.CasParticulier).length;
+    },
+    availablePlaces() {
+      return this.places.filter(place => !place.takenBy);
     }
   },
   watch: {
@@ -192,12 +184,12 @@ export default {
                 Lese: etudiant.Lese || false,
                 CasParticulier: etudiant.CasParticulier || false,
                 Remarque: etudiant.Remarque || '',
-                validated: etudiant.validated || false,
                 PFPinfo: {
                   [this.selectedPFP]: {
                     PlaceDeStage: pfpInfo.PlaceDeStage || '',
                   }
-                }
+                },
+                validated: etudiant.validated || false
               };
             });
             this.etudiants = [...this.etudiants.filter(etudiant => etudiant.Classe !== classe), ...transformedData];
@@ -216,7 +208,7 @@ export default {
             IDENTIFIANT: key,
             Nom: placesData[key].NomPlace,
             Domaine: placesData[key].Domaine,
-            NomP: placesData[key].NomPlace + " - " + placesData[key].Domaine + "-" + key,
+            NomP: placesData[key].NomPlace + " - " + placesData[key].Domaine,
             takenBy: placesData[key].takenBy || null
           }));
         }
@@ -224,56 +216,19 @@ export default {
     },
 
     updateStudent(etudiant, key, value) {
-      if (['SAE', 'Lese', 'CasParticulier', 'Remarque', 'validated'].includes(key)) {
+      // Mettez à jour la valeur localement
+      if (['SAE', 'Lese', 'CasParticulier', 'Remarque'].includes(key)) {
         etudiant[key] = value;
       } else {
         etudiant.PFPinfo[this.selectedPFP][key] = value;
       }
 
+      // Mettre à jour la base de données
       const studentRef = ref(db, `students/${etudiant.Classe}/${etudiant.IDStudent}`);
-      if (['SAE', 'Lese', 'CasParticulier', 'Remarque', 'validated'].includes(key)) {
+      if (['SAE', 'Lese', 'CasParticulier', 'Remarque'].includes(key)) {
         update(studentRef, { [key]: value });
       } else {
         update(studentRef, { [`PFPinfo/${this.selectedPFP}/${key}`]: value });
-      }
-    },
-
-    async handlePlaceChange(etudiant) {
-      const placeDeStage = etudiant.PFPinfo[this.selectedPFP].PlaceDeStage;
-
-      // Liberer l'ancienne place
-      const oldPlace = this.places.find(place => place.takenBy === etudiant.IDStudent);
-      if (oldPlace) {
-        oldPlace.takenBy = null;
-        update(ref(db, `PFP4-B22/${oldPlace.IDENTIFIANT}`), { takenBy: null });
-      }
-
-      // Affecter la nouvelle place
-      const newPlace = this.places.find(place => place.NomP === placeDeStage);
-      if (newPlace) {
-        newPlace.takenBy = etudiant.IDStudent;
-        update(ref(db, `PFP4-B22/${newPlace.IDENTIFIANT}`), { takenBy: etudiant.IDStudent });
-      }
-
-      this.updateStudent(etudiant, 'PlaceDeStage', placeDeStage);
-    },
-
-    async validateStudent(etudiant) {
-      etudiant.validated = !etudiant.validated;
-      this.updateStudent(etudiant, 'validated', etudiant.validated);
-
-      if (etudiant.validated && etudiant.PFPinfo[this.selectedPFP].PlaceDeStage) {
-        const newPlace = this.places.find(place => place.NomP === etudiant.PFPinfo[this.selectedPFP].PlaceDeStage);
-        if (newPlace) {
-          newPlace.takenBy = etudiant.IDStudent;
-          update(ref(db, `PFP4-B22/${newPlace.IDENTIFIANT}`), { takenBy: etudiant.IDStudent });
-        }
-      } else {
-        const oldPlace = this.places.find(place => place.takenBy === etudiant.IDStudent);
-        if (oldPlace) {
-          oldPlace.takenBy = null;
-          update(ref(db, `PFP4-B22/${oldPlace.IDENTIFIANT}`), { takenBy: null });
-        }
       }
     },
 
@@ -289,16 +244,24 @@ export default {
       }
     },
 
+    async validateStudent(etudiant) {
+      etudiant.validated = true;
+      const placeDeStage = etudiant.PFPinfo[this.selectedPFP].PlaceDeStage;
+      const place = this.places.find(p => p.NomP === placeDeStage);
+
+      if (place) {
+        place.takenBy = etudiant.IDStudent;
+        await update(ref(db, `PFP4-B22/${place.IDENTIFIANT}`), { takenBy: etudiant.IDStudent });
+        await update(ref(db, `students/${etudiant.Classe}/${etudiant.IDStudent}`), { validated: true });
+      }
+    },
+
     createVotation(type) {
       if (type === 'lese') {
         this.$router.push({ name: 'VotationLese', params: { selectedClass: this.selectedClasses, selectedPFP: this.selectedPFP } });
       } else {
         alert(`Votation créée pour ${type || 'les stages'}`);
       }
-    },
-
-    isPlaceTaken(place) {
-      return place.takenBy;
     },
 
     getClass(value) {
@@ -315,21 +278,13 @@ export default {
 };
 </script>
 
-
-
 <style>
 .bg-success {
   background-color: green !important;
   color: white;
 }
-
 .bg-danger {
   background-color: red !important;
   color: white;
-}
-
-option[disabled] {
-  color: gray;
-  background-color: lightgray;
 }
 </style>

@@ -14,7 +14,7 @@ import InstitutionFormModif from "@/components/Dashboard/DashboardForms/Institut
 import EtudiantDetails from "@/components/Dashboard/DashboardDetails/EtudiantDetails.vue";
 import PlaceDetails from "@/components/Dashboard/DashboardDetails/PlaceDetails.vue";
 import PFPDetails from "@/components/Dashboard/DashboardDetails/PFPDetails.vue";
-import Votation from "@/components/Dashboard/DashboardDetails/Votation.vue";
+import VotationView from "@/components/Dashboard/DashboardDetails/VotationView.vue";
 import VotationPreview from "@/components/Dashboard/DashboardDetails/Votation_preview.vue";
 import Validation from "@/components/Dashboard/DashboardDetails/Validation.vue";
 import Reception from "@/components/Dashboard/DashboardDetails/Reception.vue";
@@ -77,7 +77,7 @@ const routes = [
   { path: '/votation_preview', component: VotationPreview, name: 'VotationPreview' },
   { path: '/validation', component: Validation, name: 'Validation' },
   { path: '/reception', component: Reception, name: 'Reception' },
-  { path: '/votation', component: Votation, name: 'Votation' },
+  { path: '/votation', component: VotationView, name: 'VotationView' },
   { path: '/management_votation', component: Management_votation, name: 'Management_votation' },
   { path: '/institution_details/:id', component: InstitutionDetails, name: 'InstitutionDetails', props: true },
   { path: '/:pathMatch(.*)*', component: Error404, name: 'Error404' },

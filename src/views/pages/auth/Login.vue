@@ -70,7 +70,7 @@ const submitForm = async () => {
     toast.add({ severity: 'success', summary: 'Connexion réussie', detail: 'Vous allez être redirigé.', life: 3000 });
     // Ajout du délai avant la redirection
     setTimeout(() => {
-      router.push('/');
+      router.push('/votation_lese');
     }, 1500); // 2000 millisecondes de délai
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Erreur de connexion', detail: `Échec de la connexion`, life: 5000 });
