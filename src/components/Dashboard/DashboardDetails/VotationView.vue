@@ -56,9 +56,11 @@
                 <td v-if="stage.AMBU != ''">&#9989;</td>
                 <td v-else>&#10060;</td>
                 <td v-for="choice in [1, 2, 3, 4, 5]" :key="choice">
-                  <input type="checkbox" :checked="isSelected(stage, choice)" :disabled="isNonSelectable(stage, choice)"
-                    @change="selectStage(stage, choice, index)" class="checkbox-choice">
+                  <input type="checkbox" :checked="isSelected(stage, choice)"
+                    :disabled="isNonSelectable(stage.NomPlace, choice - 1)"
+                    @change="selectStage(stage, choice, { ID: stage.IDENTIFIANT })" class="checkbox-choice">
                 </td>
+
                 <td>{{ getTotalStudents(stage) }}</td>
               </tr>
             </tbody>
@@ -86,7 +88,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import { db, auth } from '../../../../firebase.js';
 import { ref, onValue, set, get } from "firebase/database";
@@ -107,7 +108,8 @@ export default {
       search: '',
       selectedPFP: 'PFP4',
       stages: [],
-      selectedStages: Array(5).fill(null),
+      places: [], // Initialisation du tableau de places
+      selectedStages: Array(5).fill(null), // Ajoutez cette propriété pour stocker les choix sélectionnés
       currentStudent: null,
       currentUserEmail: null,
       validationMessage: null,
@@ -116,15 +118,11 @@ export default {
       pfp1: [],
       pfp2: [],
       voteResult: null,
-      choiceTable: []
     };
   },
   computed: {
     filteredStages() {
       return this.stages.filter(stage => this.isStageVisible(stage));
-    },
-    totalChecked() {
-      return this.selectedStages.filter(stage => stage !== null).length;
     }
   },
   methods: {
@@ -153,7 +151,7 @@ export default {
       onValue(dbRef, (snapshot) => {
         if (snapshot.exists()) {
           this.stages = Object.values(snapshot.val());
-          this.initializeChoiceTable();
+          this.initializePlaces(); // Initialiser le tableau des places après avoir récupéré les données
         } else {
           console.log("No stages data available");
         }
@@ -162,57 +160,85 @@ export default {
       });
     },
 
-    initializeChoiceTable() {
-      this.choiceTable = this.stages.map(stage => ({
-        id: stage.IDENTIFIANT,
-        choices: Array(5).fill(0)
-      }));
+    initializePlaces() {
+      this.places = {};
+
+      this.filteredStages.forEach(stage => {
+        this.places[stage.NomPlace] = Array(5).fill(0);
+      });
+
+      console.log(this.places);
     },
+
 
     updateStudent(etudiant) {
       const studentRef = ref(db, `students/${etudiant.Classe}/${etudiant.id}`);
       set(studentRef, etudiant);
     },
 
-    selectStage(stage, choice, stageIndex) {
-      const isCurrentlyChecked = this.isSelected(stage, choice);
+    disableAnother(stageName, choice) {
+  // Désactiver toutes les autres options pour le choix défini
+  Object.keys(this.places).forEach(name => {
+    if (name !== stageName && this.places[name]) {
+      this.places[name][choice] = (this.places[name][choice] || 0) - 1;
+    }
+  });
 
-      if (!isCurrentlyChecked) {
-        if (this.totalChecked >= 5) {
-          console.log("Vous ne pouvez pas sélectionner plus de 5 stages.");
-          return;
-        }
+  // Désactiver toutes les autres options dans les autres choix pour la place définie
+  for (let i = 0; i < 5; i++) {
+    if (i !== choice && this.places[stageName]) {
+      this.places[stageName][i] = (this.places[stageName][i] || 0) - 1;
+    }
+  }
+},
+activateAnother(stageName, choice) {
+  // Activer toutes les autres options pour le choix défini
+  Object.keys(this.places).forEach(name => {
+    if (name !== stageName && this.places[name] && this.places[name][choice] < 0) {
+      this.places[name][choice] += 1;
+    }
+  });
 
-        if (this.selectedStages[choice - 1] !== null) {
-          console.log("Vous avez déjà sélectionné un stage pour ce choix.");
-          return;
-        }
+  // Activer toutes les autres options dans les autres choix pour la place définie
+  for (let i = 0; i < 5; i++) {
+    if (i !== choice && this.places[stageName] && this.places[stageName][i] < 0) {
+      this.places[stageName][i] += 1;
+    }
+  }
+}
+,
 
-        console.log(`Vous avez sélectionné le stage ${stage.NomPlace} pour le choix ${choice}.`);
+selectStage(stage, choice) {
+  const isCurrentlyChecked = this.isSelected(stage, choice);
 
-        this.selectedStages[choice - 1] = {
-          id: stage.IDENTIFIANT,
-          name: stage.NomPlace,
-          lieu: stage.Lieu,
-          domaine: stage.Domaine,
-          choice: choice
-        };
+  if (!this.places[stage.NomPlace]) {
+    this.places[stage.NomPlace] = Array(5).fill(0);
+  }
 
-        this.choiceTable[stageIndex].choices[choice - 1] = 1;
-      } else {
-        this.selectedStages[choice - 1] = null;
-        this.choiceTable[stageIndex].choices[choice - 1] = 0;
-      }
+  if (isCurrentlyChecked) {
+    this.places[stage.NomPlace][choice - 1] = 0;
+    this.activateAnother(stage.NomPlace, choice - 1);
+  } else {
+    if (this.isNonSelectable(stage.NomPlace, choice - 1)) {
+      console.log("Cette case est interdite et ne peut pas être sélectionnée.");
+      return;
+    }
+    this.places[stage.NomPlace][choice - 1] = 1;
+    this.disableAnother(stage.NomPlace, choice - 1);
+  }
 
-      console.log(this.choiceTable);
+  this.selectedStages[choice - 1] = isCurrentlyChecked ? null : { ...stage, choice };
 
-      this.updateVotationDB(
-        this.currentStudent.id,
-        this.currentStudent.Nom,
-        this.currentStudent.Prenom,
-        this.selectedStages
-      );
-    },
+  console.log("Tableau des places:", this.places);
+  console.log(`Élément modifié: Place ${stage.NomPlace}, Choix ${choice}`);
+
+  this.updateVotationDB(
+    this.currentStudent.id,
+    this.currentStudent.Nom,
+    this.currentStudent.Prenom,
+    this.selectedStages
+  );
+},
 
     async updateVotationDB(studentId, studentName, studentFirstName, selectedStages) {
       if (studentId) {
@@ -222,10 +248,10 @@ export default {
           studentName: studentName,
           studentFirstName: studentFirstName,
           selectedStages: selectedStages.map(stage => ({
-            selectedStageName: stage.name,
-            selectedStageLieu: stage.lieu,
-            selectedStageDomaine: stage.domaine,
-            choice: stage.choice
+            selectedStageName: stage ? stage.NomPlace : null,
+            selectedStageLieu: stage ? stage.Lieu : null,
+            selectedStageDomaine: stage ? stage.Domaine : null,
+            choice: stage ? stage.choice : null
           }))
         };
 
@@ -243,11 +269,10 @@ export default {
         this.selectedStages[choice - 1].choice === choice
       );
     },
+    isNonSelectable(stageName, choice) {
+  return this.places[stageName] && this.places[stageName][choice] < 0;
+},
 
-    isNonSelectable(stage, choice) {
-      const stageIndex = this.stages.findIndex(s => s.IDENTIFIANT === stage.IDENTIFIANT);
-      return this.choiceTable[stageIndex].choices[choice - 1] === 1;
-    },
     getTotalStudents(stage) {
       return this.etudiants.filter(student => student.selectedStages && student.selectedStages.some(s => s.id === stage.IDENTIFIANT)).length;
     },
@@ -324,6 +349,7 @@ export default {
       if (stage.takenBy) {
         return false;
       }
+
       return true;
     }
   },
