@@ -12,72 +12,68 @@
       </div>
       <div v-if="selectedPFP && selectedClass" class="table-responsive mt-4">
         <div class="d-flex justify-content-center">
-          <div v-if="filteredStages.length > 0" class="table-responsive mt-4">
-            <div class="d-flex justify-content-center">
-              <h3 class="mb-3 text-center">Toutes les places de stages filtrées</h3>
-              <table class="table table-striped align-middle mb-0 table-hover w-100 text-center">
-                <thead>
-                  <tr>
-                    <th>Institutions</th>
-                    <th>Lieux</th>
-                    <th>Secteurs</th>
-                    <th>FR</th>
-                    <th>ALL</th>
-                    <th>AIGU</th>
-                    <th>REHAB</th>
-                    <th>MSQ</th>
-                    <th>SYSINT</th>
-                    <th>Neuroger</th>
-                    <th>AMBU</th>
-                    <th>Choix 1</th>
-                    <th>Choix 2</th>
-                    <th>Choix 3</th>
-                    <th>Choix 4</th>
-                    <th>Choix 5</th>
-                    <th>Total Étudiants</th>
-                    <th>Priorité</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(stage, index) in sortedFilteredStages" :key="index">
-                    <td>{{ stage.NomPlace }}</td>
-                    <td>{{ stage.Lieu }}</td>
-                    <td>{{ stage.Domaine }}</td>
-                    <td v-if="stage.FR == '1'">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-if="stage.ALL == '1'">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-if="stage.AIGU != ''">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-if="stage.REHAB != ''">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-if="stage.MSQ != ''">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-if="stage.SYSINT != ''">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-if="stage.NEUROGER != ''">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-if="stage.AMBU != ''">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-for="choice in [1, 2, 3, 4, 5]" :key="choice">
-                      <input type="checkbox" :checked="isSelected(stage, choice)"
-                        :disabled="isNonSelectable(stage.NomPlace, choice - 1) || hasVoted"
-                        @change="selectStage(stage, choice)" class="checkbox-choice">
-                    </td>
-                    <td>{{ getTotalStudents(stage) }}</td>
-                    <td>{{ stage.priority ? 'Oui' : 'Non' }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div v-else>
-            <p class="mt-4">Aucun stage disponible avec les critères de validation actuels.</p>
-          </div>
+          <h3 class="mb-3 text-center">Toutes les places de stages</h3>
+          <div v-if="selectedPFP && selectedClass" class="table-responsive mt-4">
+        <div class="d-flex justify-content-center">
+          <h3 class="mb-3 text-center">Toutes les places de stages</h3>
+          <table class="table table-striped align-middle mb-0 table-hover w-100 text-center">
+            <thead>
+              <tr>
+                <th>Institutions</th>
+                <th>Lieux</th>
+                <th>Secteurs</th>
+                <th>FR</th>
+                <th>ALL</th>
+                <th>AIGU</th>
+                <th>REHAB</th>
+                <th>MSQ</th>
+                <th>SYSINT</th>
+                <th>Neuroger</th>
+                <th>AMBU</th>
+                <th>Choix 1</th>
+                <th>Choix 2</th>
+                <th>Choix 3</th>
+                <th>Choix 4</th>
+                <th>Choix 5</th>
+                <th>Total Étudiants</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(stage, index) in filteredStages" :key="index">
+                <td>{{ stage.NomPlace }}</td>
+                <td>{{ stage.Lieu }}</td>
+                <td>{{ stage.Domaine }}</td>
+                <td v-if="stage.FR == '1'">&#9989;</td>
+                <td v-else>&#10060;</td>
+                <td v-if="stage.ALL == '1'">&#9989;</td>
+                <td v-else>&#10060;</td>
+                <td v-if="stage.AIGU != ''">&#9989;</td>
+                <td v-else>&#10060;</td>
+                <td v-if="stage.REHAB != ''">&#9989;</td>
+                <td v-else>&#10060;</td>
+                <td v-if="stage.MSQ != ''">&#9989;</td>
+                <td v-else>&#10060;</td>
+                <td v-if="stage.SYSINT != ''">&#9989;</td>
+                <td v-else>&#10060;</td>
+                <td v-if="stage.NEUROGER != ''">&#9989;</td>
+                <td v-else>&#10060;</td>
+                <td v-if="stage.AMBU != ''">&#9989;</td>
+                <td v-else>&#10060;</td>
+                <td v-for="choice in [1, 2, 3, 4, 5]" :key="choice">
+                  <input type="checkbox" :checked="isSelected(stage, choice)"
+                    :disabled="isNonSelectable(stage.NomPlace, choice - 1)"
+                    @change="selectStage(stage, choice, { ID: stage.IDENTIFIANT })" class="checkbox-choice">
+                </td>
+
+                <td>{{ getTotalStudents(stage) }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <div v-if="allStages.length > 0" class="table-responsive mt-4">
-          <div class="d-flex justify-content-center">
-            <h3 class="mb-3 text-center">Toutes les places de stages disponibles</h3>
+      </div>
+          <!-- Section 1 -->
+          <div v-if="getPlacesForValidationMessage().length">
+            <h4 class="mt-4">Section 1</h4>
             <table class="table table-striped align-middle mb-0 table-hover w-100 text-center">
               <thead>
                 <tr>
@@ -101,7 +97,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="(stage, index) in allStages" :key="index">
+                <tr v-for="(stage, index) in getPlacesForValidationMessage()" :key="index">
                   <td>{{ stage.NomPlace }}</td>
                   <td>{{ stage.Lieu }}</td>
                   <td>{{ stage.Domaine }}</td>
@@ -123,66 +119,45 @@
                   <td v-else>&#10060;</td>
                   <td v-for="choice in [1, 2, 3, 4, 5]" :key="choice">
                     <input type="checkbox" :checked="isSelected(stage, choice)"
-                      :disabled="isNonSelectable(stage.NomPlace, choice - 1) || hasVoted"
-                      @change="selectStage(stage, choice)" class="checkbox-choice">
+                      :disabled="isNonSelectable(stage.NomPlace, choice - 1)"
+                      @change="selectStage(stage, choice, { ID: stage.IDENTIFIANT })" class="checkbox-choice">
                   </td>
                   <td>{{ getTotalStudents(stage) }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
-        </div>
-        <div v-if="selectedStages.length > 0" class="mt-4 text-center">
-          <h4>Stages sélectionnés</h4>
-          <ul>
-            <div v-if="hasVoted">
-              <li v-for="choice in [1, 2, 3, 4, 5]" :key="choice">
-                Choix {{ choice }}:
-                <span v-if="selectedStages[choice - 1]">
-
-                  <span v-if="selectedStages[choice - 1].selectedStageName">
-
-                    {{ selectedStages[choice - 1].selectedStageName }} ({{ selectedStages[choice - 1].selectedStageLieu
-                    }})
-
-                  </span>
-                  <span v-if="selectedStages[choice - 1].NomPlace">
-
-                    {{ selectedStages[choice - 1].NomPlace
-                    }}
-
-                  </span>
-                </span>
-                <span v-else>Aucun</span>
-              </li>
-            </div>
-            <div v-if="hasVoted == false">
-              <li v-for="choice in [1, 2, 3, 4, 5]" :key="choice">
-                Choix {{ choice }}:
-                <span v-if="selectedStages[choice - 1]">
-                  {{ selectedStages[choice - 1].NomPlace }}
-
-                </span>
-                <span v-else>Aucun</span>
-              </li>
-            </div>
-
-          </ul>
-        </div>
-        <div class="mt-4 text-center">
-          <button class="btn btn-primary" @click="submitVotes" v-if="!hasVoted">Voter</button>
-          <button class="btn btn-warning" @click="resetVotes" v-if="hasVoted">Réinitialiser</button>
-          <div v-if="showAlert" class="alert alert-success mt-3">Merci pour votre votation, elle a été prise en compte.
-          </div>
+          
+          <!-- Les autres sections... -->
         </div>
       </div>
+
+      <div v-if="selectedStages.length > 0" class="mt-4 text-center">
+        <h4>Stages sélectionnés</h4>
+        <ul>
+          <li v-for="choice in [1, 2, 3, 4, 5]" :key="choice">
+            Choix {{ choice }}:
+            <span v-if="selectedStages[choice - 1]">
+              {{ selectedStages[choice - 1].name }} ({{ selectedStages[choice - 1].lieu }})
+            </span>
+            <span v-else>Aucun</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="mt-4 text-center">
+        <button class="btn btn-primary" @click="submitVotes">Voter</button>
+      </div>
+      <br /><br /><br /><br />
     </div>
   </div>
 </template>
 
+
+
 <script>
 import { db, auth } from '../../../../firebase.js';
-import { ref, onValue, get, remove, update } from "firebase/database";
+import { ref, onValue, set, get } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from '@/components/Utils/Navbar.vue';
 import UserProfile from './UserProfile.vue';
@@ -195,14 +170,15 @@ export default {
   },
   data() {
     return {
-      section1: [],
+      section1:[],
+
       etudiants: [],
       selectedClass: 'BA22',
       search: '',
       selectedPFP: 'PFP4',
       stages: [],
-      places: {},
-      selectedStages: Array(5).fill(null),
+      places: [], // Initialisation du tableau de places
+      selectedStages: Array(5).fill(null), // Ajoutez cette propriété pour stocker les choix sélectionnés
       currentStudent: null,
       currentUserEmail: null,
       validationMessage: null,
@@ -211,39 +187,11 @@ export default {
       pfp1: [],
       pfp2: [],
       voteResult: null,
-      hasVoted: false,
-      showAlert: false
     };
   },
   computed: {
     filteredStages() {
-      const criteria = this.getValidationCriteria();
-
-      return this.stages.filter(stage => {
-        for (let criterion of criteria) {
-          if (stage.isTaken) {
-            console.log(stage);
-            return false;
-
-
-          }
-          if (stage[criterion] !== '1' && stage[criterion] !== true) {
-            return false;
-          }
-        }
-        return true;
-      });
-    },
-    sortedFilteredStages() {
-      return [...this.filteredStages].sort((a, b) => b.priority - a.priority);
-    },
-    allStages() {
-      if (this.languageIssue === "ALL") {
-        return this.stages.filter(stage => stage.ALL == '1');
-      } else if (this.languageIssue === "FR") {
-        return this.stages.filter(stage => stage.FR == '1');
-      }
-      return this.stages;
+      return this.stages.filter(stage => this.isStageVisible(stage));
     }
   },
   methods: {
@@ -272,8 +220,7 @@ export default {
       onValue(dbRef, (snapshot) => {
         if (snapshot.exists()) {
           this.stages = Object.values(snapshot.val());
-          this.initializePlaces();
-          this.assignPriorities();
+          this.initializePlaces(); // Initialiser le tableau des places après avoir récupéré les données
         } else {
           console.log("No stages data available");
         }
@@ -285,55 +232,62 @@ export default {
     initializePlaces() {
       this.places = {};
 
-      this.stages.forEach(stage => {
+      this.filteredStages.forEach(stage => {
         this.places[stage.NomPlace] = Array(5).fill(0);
       });
+
+      console.log(this.places);
     },
 
-    assignPriorities() {
-      this.stages.forEach(stage => {
-        stage.priority = this.getValidationCriteria().every(criterion => stage[criterion] === '1' || stage[criterion] === true);
-      });
-    },
+    getPlacesForValidationMessage() {
+  if (!this.validationMessage || this.validationMessage.length === 0) return [];
 
-    getValidationCriteria() {
-      if (!this.validationMessage || this.validationMessage.length === 0) return [];
-      const criteriaString = this.validationMessage[0];
-      return criteriaString.replace('ALL + manque ', '').split(', ').map(c => c.trim());
-    },
+  const criteriaString = this.validationMessage[0];
+  const criteria = criteriaString.replace('ALL + manque ', '').split(', ').map(c => c.trim());
+  console.log(criteria);
+
+  return this.filteredStages.filter(stage => 
+    criteria.every(field => stage[field] === '1')
+  );
+},
+
 
     updateStudent(etudiant) {
       const studentRef = ref(db, `students/${etudiant.Classe}/${etudiant.id}`);
-      update(studentRef, etudiant);
+      set(studentRef, etudiant);
     },
 
     disableAnother(stageName, choice) {
+      // Désactiver toutes les autres options pour le choix défini
       Object.keys(this.places).forEach(name => {
         if (name !== stageName && this.places[name]) {
           this.places[name][choice] = (this.places[name][choice] || 0) - 1;
         }
       });
 
+      // Désactiver toutes les autres options dans les autres choix pour la place définie
       for (let i = 0; i < 5; i++) {
         if (i !== choice && this.places[stageName]) {
           this.places[stageName][i] = (this.places[stageName][i] || 0) - 1;
         }
       }
     },
-
     activateAnother(stageName, choice) {
+      // Activer toutes les autres options pour le choix défini
       Object.keys(this.places).forEach(name => {
         if (name !== stageName && this.places[name] && this.places[name][choice] < 0) {
           this.places[name][choice] += 1;
         }
       });
 
+      // Activer toutes les autres options dans les autres choix pour la place définie
       for (let i = 0; i < 5; i++) {
         if (i !== choice && this.places[stageName] && this.places[stageName][i] < 0) {
           this.places[stageName][i] += 1;
         }
       }
-    },
+    }
+    ,
 
     selectStage(stage, choice) {
       const isCurrentlyChecked = this.isSelected(stage, choice);
@@ -347,6 +301,7 @@ export default {
         this.activateAnother(stage.NomPlace, choice - 1);
       } else {
         if (this.isNonSelectable(stage.NomPlace, choice - 1)) {
+          console.log("Cette case est interdite et ne peut pas être sélectionnée.");
           return;
         }
         this.places[stage.NomPlace][choice - 1] = 1;
@@ -354,6 +309,9 @@ export default {
       }
 
       this.selectedStages[choice - 1] = isCurrentlyChecked ? null : { ...stage, choice };
+
+      console.log("Tableau des places:", this.places);
+      console.log(`Élément modifié: Place ${stage.NomPlace}, Choix ${choice}`);
 
       this.updateVotationDB(
         this.currentStudent.id,
@@ -365,7 +323,7 @@ export default {
 
     async updateVotationDB(studentId, studentName, studentFirstName, selectedStages) {
       if (studentId) {
-        const votationRef = ref(db, `votationPFP4-B22/${studentId}`);
+        const votationRef = ref(db, `votationPFP4-B33/${studentId}`);
         const votationData = {
           studentId: studentId,
           studentName: studentName,
@@ -378,40 +336,26 @@ export default {
           }))
         };
 
-        await update(votationRef, votationData);
-
-        // Update the total number of students for each selected stage
-        this.updateTotalStudents();
+        await set(votationRef, votationData);
+        console.log("Votation data updated successfully!");
+      } else {
+        console.log("Erreur: Informations de l'étudiant manquantes.");
       }
-    },
-
-    async updateTotalStudents() {
-      const stagesToUpdate = this.selectedStages.filter(stage => stage);
-      const updates = {};
-
-      stagesToUpdate.forEach(stage => {
-        const stageRef = ref(db, `/PFP4-B22/${stage.IDENTIFIANT}`);
-        updates[`${stage.IDENTIFIANT}/totalEtudiants`] = this.getTotalStudents(stage) + 1;
-        update(stageRef, { totalEtudiants: this.getTotalStudents(stage) + 1 });
-      });
-
-      await update(ref(db), updates);
     },
 
     isSelected(stage, choice) {
       return (
         this.selectedStages[choice - 1] &&
-        this.selectedStages[choice - 1].IDENTIFIANT === stage.IDENTIFIANT &&
+        this.selectedStages[choice - 1].id === stage.IDENTIFIANT &&
         this.selectedStages[choice - 1].choice === choice
       );
     },
-
     isNonSelectable(stageName, choice) {
       return this.places[stageName] && this.places[stageName][choice] < 0;
     },
 
     getTotalStudents(stage) {
-      return this.etudiants.filter(student => student.selectedStages && student.selectedStages.some(s => s.IDENTIFIANT === stage.IDENTIFIANT)).length;
+      return this.etudiants.filter(student => student.selectedStages && student.selectedStages.some(s => s.id === stage.IDENTIFIANT)).length;
     },
 
     async findCurrentStudent() {
@@ -438,26 +382,19 @@ export default {
             }
           }
         }
+        console.log("No matching student found.");
       }
     },
 
     async fetchVoteResult(studentId) {
-      const votationRef = ref(db, `votationPFP4-B22/${studentId}`);
+      const votationRef = ref(db, `votation_lese/${studentId}`);
       const snapshot = await get(votationRef);
       if (snapshot.exists()) {
-        console.log("HAS RESULTT");
-        const votationData = snapshot.val();
-        if(votationData.selectedStages){}
-        this.voteResult = votationData;
-        this.selectedStages = votationData.selectedStages.map(stage => ({
-          ...stage,
-          IDENTIFIANT: this.stages.find(s => s.NomPlace === stage.selectedStageName).IDENTIFIANT
-        }));
-        console.log(this.selectedStages[1]);
-
-        this.hasVoted = true;
+        this.voteResult = snapshot.val();
       }
     },
+
+
 
     checkValidation() {
       if (!this.currentStudent) return;
@@ -486,9 +423,11 @@ export default {
       if (REHAB == "0") this.missingFields.push("REHAB");
 
       if (this.languageIssue === "ALL") {
+        // Message 1: ALL + tous les critères manquants
         messages.push(`ALL, ${this.missingFields.join(", ")}`);
         this.section1 = [`ALL, ${this.missingFields.join(", ")}`];
 
+        // Message 2: ALL + toutes les combinaisons de critères manquants moins 1
         if (this.missingFields.length > 1) {
           for (let i = 0; i < this.missingFields.length; i++) {
             const combination = this.missingFields.filter((_, index) => index !== i).join(", ");
@@ -500,6 +439,7 @@ export default {
           this.section2.push(`ALL, ${this.missingFields.join(", ")}`);
         }
 
+        // Message 3: Uniquement ALL
         messages.push("ALL");
         this.section3 = ["ALL"];
       } else {
@@ -515,56 +455,19 @@ export default {
       }
 
       this.validationMessage = messages;
-    },
+    }
 
-    isStageVisible(stage, criteria) {
+    ,
+
+
+    isStageVisible(stage) {
       if (stage.takenBy) {
         return false;
       }
-      if (!criteria || criteria.length === 0) {
-        return true;
-      }
-      for (let criterion of criteria) {
-        if (stage[criterion] !== '1') {
-          return false;
-        }
-      }
+
       return true;
-    },
-
-
-    async resetVotes() {
-      if (this.currentStudent) {
-        const votationRef = ref(db, `votationPFP4-B22/${this.currentStudent.id}`);
-        await remove(votationRef);
-        this.selectedStages = Array(5).fill(null);
-        this.hasVoted = false;
-        this.showAlert = false;
-      }
-    },
-
-    submitVotes() {
-      // Mettre à jour la base de données avec les informations de vote
-      this.updateVotationDB(
-        this.currentStudent.id,
-        this.currentStudent.Nom,
-        this.currentStudent.Prenom,
-        this.selectedStages
-      );
-
-      // Afficher le message de remerciement
-      this.showAlert = true;
-
-      // Désactiver la modification des votes après la soumission
-      this.hasVoted = true;
-
-      setTimeout(() => {
-        this.showAlert = false;
-      }, 3000);
     }
-
   },
-
   async mounted() {
     this.fetchStudentsData();
     this.fetchStagesData();
@@ -580,19 +483,3 @@ export default {
   }
 };
 </script>
-<style scoped>
-.table-responsive {
-  text-align: center;
-}
-
-th,
-td {
-  text-align: center;
-  vertical-align: middle;
-}
-
-.checkbox-choice {
-  margin: auto;
-  display: block;
-}
-</style>
