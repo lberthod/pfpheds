@@ -5,14 +5,13 @@
     <div class="container-fluid mt-4">
       <div v-if="currentStudent && selectedPFP && selectedClass" class="table-responsive mt-4">
         <div v-if="validationMessage" class="mt-4 text-center">
-          <p>Priorité donnée aux places : {{ validationMessage[0] }}</p>
         </div>
       </div>
       <div v-if="selectedPFP && selectedClass" class="table-responsive mt-4">
         <div class="d-flex justify-content-center">
           <div v-if="filteredStages.length > 0" class="table-responsive mt-4">
             <div class="d-flex justify-content-center">
-              <h3 class="mb-3 text-center">Les places de stages conseillées</h3>
+              <h3 class="mb-3 text-center">Places de stages validant vos critères manquants : {{ validationMessage[0] }}</h3>
               <table class="table table-striped align-middle mb-0 table-hover w-100 text-center">
                 <thead>
                   <tr>
@@ -27,11 +26,17 @@
                     <th>SYSINT</th>
                     <th>Neuroger</th>
                     <th>AMBU</th>
-                    <th>Choix 1</th>
-                    <th>Choix 2</th>
-                    <th>Choix 3</th>
-                    <th>Choix 4</th>
-                    <th>Choix 5</th>
+                    <th>Priorité 1</th>
+                    <th>Priorité 2</th>
+                    <th>Priorité 3</th>
+                    <th>Priorité 4</th>
+                    <th>Priorité 5</th>
+                    <th>Nbr choix 1</th>
+                    <th>Nbr choix 2</th>
+                    <th>Nbr choix 3</th>
+                    <th>Nbr choix 4</th>
+                    <th>Nbr choix 5</th>
+                    <th>Total étudiant.e.s</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -60,6 +65,12 @@
                         :disabled="isNonSelectable(stage.NomPlace, choice - 1) || hasVoted"
                         @change="selectStage(stage, choice)" class="checkbox-choice">
                     </td>
+                    <td>{{ getVoteCount(stage.NomPlace, 1) }}</td>
+                    <td>{{ getVoteCount(stage.NomPlace, 2) }}</td>
+                    <td>{{ getVoteCount(stage.NomPlace, 3) }}</td>
+                    <td>{{ getVoteCount(stage.NomPlace, 4) }}</td>
+                    <td>{{ getVoteCount(stage.NomPlace, 5) }}</td>
+                    <td>{{ getTotalVotes(stage.NomPlace) }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -71,7 +82,7 @@
         </div>
         <div v-if="allStages.length > 0" class="table-responsive mt-4">
           <div class="d-flex justify-content-center">
-            <h3 class="mb-3 text-center">Toutes vos places de stages disponibles</h3>
+            <h3 class="mb-3 text-center">Places de stages validant au minimum un critère manquant</h3>
             <table class="table table-striped align-middle mb-0 table-hover w-100 text-center">
               <thead>
                 <tr>
@@ -86,11 +97,17 @@
                   <th>SYSINT</th>
                   <th>Neuroger</th>
                   <th>AMBU</th>
-                  <th>Choix 1</th>
-                  <th>Choix 2</th>
-                  <th>Choix 3</th>
-                  <th>Choix 4</th>
-                  <th>Choix 5</th>
+                  <th>Priorité 1</th>
+                  <th>Priorité 2</th>
+                  <th>Priorité 3</th>
+                  <th>Priorité 4</th>
+                  <th>Priorité 5</th>
+                  <th>Nbr choix 1</th>
+                    <th>Nbr choix 2</th>
+                    <th>Nbr choix 3</th>
+                    <th>Nbr choix 4</th>
+                    <th>Nbr choix 5</th>
+                    <th>Total étudiant.e.s</th>
                 </tr>
               </thead>
               <tbody>
@@ -119,6 +136,12 @@
                       :disabled="isNonSelectable(stage.NomPlace, choice - 1) || hasVoted"
                       @change="selectStage(stage, choice)" class="checkbox-choice">
                   </td>
+                  <td>{{ getVoteCount(stage.NomPlace, 1) }}</td>
+                  <td>{{ getVoteCount(stage.NomPlace, 2) }}</td>
+                  <td>{{ getVoteCount(stage.NomPlace, 3) }}</td>
+                  <td>{{ getVoteCount(stage.NomPlace, 4) }}</td>
+                  <td>{{ getVoteCount(stage.NomPlace, 5) }}</td>
+                  <td>{{ getTotalVotes(stage.NomPlace) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -134,14 +157,12 @@
 
                   <span v-if="selectedStages[choice - 1].selectedStageName">
 
-                    {{ selectedStages[choice - 1].selectedStageName }} ({{ selectedStages[choice - 1].selectedStageLieu
-                    }})
+                    {{ selectedStages[choice - 1].selectedStageName }} ({{ selectedStages[choice - 1].selectedStageLieu }})
 
                   </span>
                   <span v-if="selectedStages[choice - 1].NomPlace">
 
-                    {{ selectedStages[choice - 1].NomPlace
-                    }}
+                    {{ selectedStages[choice - 1].NomPlace }}
 
                   </span>
                 </span>
@@ -153,19 +174,16 @@
                 Choix {{ choice }}:
                 <span v-if="selectedStages[choice - 1]">
                   {{ selectedStages[choice - 1].NomPlace }}
-
                 </span>
                 <span v-else>Aucun</span>
               </li>
             </div>
-
           </ul>
         </div>
         <div class="mt-4 text-center">
           <button class="btn btn-primary" @click="submitVotes" v-if="!hasVoted">Voter</button>
           <button class="btn btn-warning" @click="resetVotes" v-if="hasVoted">Réinitialiser</button>
-          <div v-if="showAlert" class="alert alert-success mt-3">Merci pour votre votation, elle a été prise en compte.
-          </div>
+          <div v-if="showAlert" class="alert alert-success mt-3">Merci pour votre votation, elle a été prise en compte.</div>
         </div>
       </div>
     </div>
@@ -204,7 +222,8 @@ export default {
       pfp2: [],
       voteResult: null,
       hasVoted: false,
-      showAlert: false
+      showAlert: false,
+      voteCounts: {} // Initialiser voteCounts ici
     };
   },
   computed: {
@@ -216,7 +235,6 @@ export default {
           return false; // Ne pas inclure les stages qui ont déjà été pris
         }
         for (let criterion of criteria) {
-
           if (stage[criterion] !== '1' && stage[criterion] !== true) {
             return false;
           }
@@ -265,6 +283,7 @@ export default {
           this.stages = Object.values(snapshot.val());
           this.initializePlaces();
           this.assignPriorities();
+          this.logVoteResults(); // Appel de la nouvelle méthode
         } else {
           console.log("No stages data available");
         }
@@ -372,21 +391,7 @@ export default {
         await update(votationRef, votationData);
 
         // Update the total number of students for each selected stage
-        this.updateTotalStudents();
       }
-    },
-
-    async updateTotalStudents() {
-      const stagesToUpdate = this.selectedStages.filter(stage => stage);
-      const updates = {};
-
-      stagesToUpdate.forEach(stage => {
-        const stageRef = ref(db, `/PFP4-B22/${stage.IDENTIFIANT}`);
-        updates[`${stage.IDENTIFIANT}/totalEtudiants`] = this.getTotalStudents(stage) + 1;
-        update(stageRef, { totalEtudiants: this.getTotalStudents(stage) + 1 });
-      });
-
-      await update(ref(db), updates);
     },
 
     isSelected(stage, choice) {
@@ -438,7 +443,6 @@ export default {
       if (snapshot.exists()) {
         console.log("HAS RESULTT");
         const votationData = snapshot.val();
-        if (votationData.selectedStages) { }
         this.voteResult = votationData;
         this.selectedStages = votationData.selectedStages.map(stage => ({
           ...stage,
@@ -523,7 +527,6 @@ export default {
       return true;
     },
 
-
     async resetVotes() {
       if (this.currentStudent) {
         const votationRef = ref(db, `votationPFP4-B22/${this.currentStudent.id}`);
@@ -552,8 +555,62 @@ export default {
       setTimeout(() => {
         this.showAlert = false;
       }, 3000);
-    }
+    },
 
+    async logVoteResults() {
+      const votationRef = ref(db, 'votationPFP4-B22');
+      const snapshot = await get(votationRef);
+
+      if (snapshot.exists()) {
+        const votationData = snapshot.val();
+        const voteCounts = {};
+
+        for (const studentId in votationData) {
+          const votation = votationData[studentId];
+          if (votation && votation.selectedStages) {
+            votation.selectedStages.forEach(stage => {
+              if (stage && stage.selectedStageName) {
+                const stageName = stage.selectedStageName;
+                const choice = stage.choice;
+
+                if (!voteCounts[stageName]) {
+                  voteCounts[stageName] = { choix: Array(5).fill(0), total: 0 };
+                }
+
+                if (choice) {
+                  voteCounts[stageName].choix[choice - 1] += 1;
+                  voteCounts[stageName].total += 1;
+                }
+              }
+            });
+          }
+        }
+
+        // Log results in a detailed manner
+        for (const [place, counts] of Object.entries(voteCounts)) {
+          console.log(`Vote Results for ${place}:`);
+          counts.choix.forEach((count, index) => {
+            console.log(`  Choix ${index + 1}: ${count} étudiant(s)`);
+          });
+          console.log(`  Total: ${counts.total} étudiant(s)`);
+        }
+
+        // Store vote counts for use in template
+        this.voteCounts = voteCounts;
+      } else {
+        console.log("No votation data available");
+      }
+    },
+
+    getVoteCount(placeName, choice) {
+      const placeVotes = this.voteCounts[placeName];
+      return placeVotes ? placeVotes.choix[choice - 1] : 0;
+    },
+
+    getTotalVotes(placeName) {
+      const placeVotes = this.voteCounts[placeName];
+      return placeVotes ? placeVotes.total : 0;
+    }
   },
 
   async mounted() {
@@ -571,6 +628,7 @@ export default {
   }
 };
 </script>
+
 <style scoped>
 .table-responsive {
   text-align: center;
