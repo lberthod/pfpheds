@@ -5,16 +5,14 @@
     <div class="container-fluid mt-4">
       <div v-if="currentStudent && selectedPFP && selectedClass" class="table-responsive mt-4">
         <div v-if="validationMessage" class="mt-4 text-center">
-          <h4>Validation</h4>
-          <p>A besoin de : {{ validationMessage.join(" - ") }}</p>
-          <p>A besoin en prio : {{ validationMessage[0] }}</p>
+          <p>Priorité donnée aux places : {{ validationMessage[0] }}</p>
         </div>
       </div>
       <div v-if="selectedPFP && selectedClass" class="table-responsive mt-4">
         <div class="d-flex justify-content-center">
           <div v-if="filteredStages.length > 0" class="table-responsive mt-4">
             <div class="d-flex justify-content-center">
-              <h3 class="mb-3 text-center">Toutes les places de stages filtrées</h3>
+              <h3 class="mb-3 text-center">Les places de stages conseillées</h3>
               <table class="table table-striped align-middle mb-0 table-hover w-100 text-center">
                 <thead>
                   <tr>
@@ -34,8 +32,6 @@
                     <th>Choix 3</th>
                     <th>Choix 4</th>
                     <th>Choix 5</th>
-                    <th>Total Étudiants</th>
-                    <th>Priorité</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -64,8 +60,6 @@
                         :disabled="isNonSelectable(stage.NomPlace, choice - 1) || hasVoted"
                         @change="selectStage(stage, choice)" class="checkbox-choice">
                     </td>
-                    <td>{{ getTotalStudents(stage) }}</td>
-                    <td>{{ stage.priority ? 'Oui' : 'Non' }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -77,7 +71,7 @@
         </div>
         <div v-if="allStages.length > 0" class="table-responsive mt-4">
           <div class="d-flex justify-content-center">
-            <h3 class="mb-3 text-center">Toutes les places de stages disponibles</h3>
+            <h3 class="mb-3 text-center">Toutes vos places de stages disponibles</h3>
             <table class="table table-striped align-middle mb-0 table-hover w-100 text-center">
               <thead>
                 <tr>
@@ -97,7 +91,6 @@
                   <th>Choix 3</th>
                   <th>Choix 4</th>
                   <th>Choix 5</th>
-                  <th>Total Étudiants</th>
                 </tr>
               </thead>
               <tbody>
@@ -126,7 +119,6 @@
                       :disabled="isNonSelectable(stage.NomPlace, choice - 1) || hasVoted"
                       @change="selectStage(stage, choice)" class="checkbox-choice">
                   </td>
-                  <td>{{ getTotalStudents(stage) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -220,13 +212,11 @@ export default {
       const criteria = this.getValidationCriteria();
 
       return this.stages.filter(stage => {
+        if (stage.takenBy) {
+          return false; // Ne pas inclure les stages qui ont déjà été pris
+        }
         for (let criterion of criteria) {
-          if (stage.isTaken) {
-            console.log(stage);
-            return false;
 
-
-          }
           if (stage[criterion] !== '1' && stage[criterion] !== true) {
             return false;
           }
@@ -238,12 +228,13 @@ export default {
       return [...this.filteredStages].sort((a, b) => b.priority - a.priority);
     },
     allStages() {
+      let filteredStages = this.stages;
       if (this.languageIssue === "ALL") {
-        return this.stages.filter(stage => stage.ALL == '1');
+        filteredStages = filteredStages.filter(stage => stage.ALL == '1');
       } else if (this.languageIssue === "FR") {
-        return this.stages.filter(stage => stage.FR == '1');
+        filteredStages = filteredStages.filter(stage => stage.FR == '1');
       }
-      return this.stages;
+      return filteredStages.filter(stage => !stage.takenBy); // Ne pas inclure les stages qui ont déjà été pris
     }
   },
   methods: {
@@ -447,7 +438,7 @@ export default {
       if (snapshot.exists()) {
         console.log("HAS RESULTT");
         const votationData = snapshot.val();
-        if(votationData.selectedStages){}
+        if (votationData.selectedStages) { }
         this.voteResult = votationData;
         this.selectedStages = votationData.selectedStages.map(stage => ({
           ...stage,
