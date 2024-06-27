@@ -11,7 +11,8 @@
         <div class="d-flex justify-content-center">
           <div v-if="filteredStages.length > 0" class="table-responsive mt-4">
             <div class="d-flex justify-content-center">
-              <h3 class="mb-3 text-center">Places de stages validant vos critères manquants : {{ validationMessage[0] }}</h3>
+              <h3 class="mb-3 text-center">Places de stages validant vos critères manquants : {{ validationMessage[0]}}
+              </h3>
               <table class="table table-striped align-middle mb-0 table-hover w-100 text-center">
                 <thead>
                   <tr>
@@ -80,7 +81,7 @@
             <p class="mt-4">Aucun stage disponible avec les critères de validation actuels.</p>
           </div>
         </div>
-        <div v-if="allStages.length > 0" class="table-responsive mt-4">
+        <div v-if="allStages.length > 0 && validationMessage[0]!=='Tout validé'" class="table-responsive mt-4">
           <div class="d-flex justify-content-center">
             <h3 class="mb-3 text-center">Places de stages validant au minimum un critère manquant</h3>
             <table class="table table-striped align-middle mb-0 table-hover w-100 text-center">
@@ -103,11 +104,11 @@
                   <th>Priorité 4</th>
                   <th>Priorité 5</th>
                   <th>Nbr choix 1</th>
-                    <th>Nbr choix 2</th>
-                    <th>Nbr choix 3</th>
-                    <th>Nbr choix 4</th>
-                    <th>Nbr choix 5</th>
-                    <th>Total étudiant.e.s</th>
+                  <th>Nbr choix 2</th>
+                  <th>Nbr choix 3</th>
+                  <th>Nbr choix 4</th>
+                  <th>Nbr choix 5</th>
+                  <th>Total étudiant.e.s</th>
                 </tr>
               </thead>
               <tbody>
@@ -157,7 +158,8 @@
 
                   <span v-if="selectedStages[choice - 1].selectedStageName">
 
-                    {{ selectedStages[choice - 1].selectedStageName }} ({{ selectedStages[choice - 1].selectedStageLieu }})
+                    {{ selectedStages[choice - 1].selectedStageName }} ({{ selectedStages[choice - 1].selectedStageLieu
+                    }})
 
                   </span>
                   <span v-if="selectedStages[choice - 1].NomPlace">
@@ -183,7 +185,8 @@
         <div class="mt-4 text-center">
           <button class="btn btn-primary" @click="submitVotes" v-if="!hasVoted">Voter</button>
           <button class="btn btn-warning" @click="resetVotes" v-if="hasVoted">Réinitialiser</button>
-          <div v-if="showAlert" class="alert alert-success mt-3">Merci pour votre votation, elle a été prise en compte.</div>
+          <div v-if="showAlert" class="alert alert-success mt-3">Merci pour votre votation, elle a été prise en compte.
+          </div>
         </div>
       </div>
     </div>
@@ -229,12 +232,16 @@ export default {
   computed: {
     filteredStages() {
       const criteria = this.getValidationCriteria();
+      console.log("cri: " +criteria);
 
       return this.stages.filter(stage => {
         if (stage.takenBy) {
           return false; // Ne pas inclure les stages qui ont déjà été pris
         }
+
         for (let criterion of criteria) {
+          console.log("ICI CXXX333");
+
           if (stage[criterion] !== '1' && stage[criterion] !== true) {
             return false;
           }
@@ -248,8 +255,11 @@ export default {
     allStages() {
       let filteredStages = this.stages;
       if (this.languageIssue === "ALL") {
+        console.log("ICI all");
+
         filteredStages = filteredStages.filter(stage => stage.ALL == '1');
       } else if (this.languageIssue === "FR") {
+      console.log("ICI fr");
         filteredStages = filteredStages.filter(stage => stage.FR == '1');
       }
       return filteredStages.filter(stage => !stage.takenBy); // Ne pas inclure les stages qui ont déjà été pris
@@ -309,8 +319,19 @@ export default {
     getValidationCriteria() {
       if (!this.validationMessage || this.validationMessage.length === 0) return [];
       const criteriaString = this.validationMessage[0];
-      return criteriaString.replace('ALL + manque ', '').split(', ').map(c => c.trim());
+      let criteria = [];
+      console.log("manque : " + criteriaString);
+      if (criteriaString.includes('ALL')) {
+        criteria = criteriaString.replace('ALL + manque ', '').split(', ');
+        console.log("ALL + manque " + criteria);
+      } else if (criteriaString.includes('FR')) {
+        criteria = criteriaString.replace('FR + manque ', '').split(', ');
+        console.log("FR + manque " + criteria);
+      }
+      console.log("cri" + criteria);
+      return criteria.map(c => c.trim());
     },
+
 
     updateStudent(etudiant) {
       const studentRef = ref(db, `students/${etudiant.Classe}/${etudiant.id}`);
@@ -443,6 +464,7 @@ export default {
       if (snapshot.exists()) {
         console.log("HAS RESULTT");
         const votationData = snapshot.val();
+        console.log(votationData);
         this.voteResult = votationData;
         this.selectedStages = votationData.selectedStages.map(stage => ({
           ...stage,
@@ -497,6 +519,25 @@ export default {
 
         messages.push("ALL");
         this.section3 = ["ALL"];
+      }
+
+      if (this.languageIssue === "FR") {
+        messages.push(`FR, ${this.missingFields.join(", ")}`);
+        this.section1 = [`FR, ${this.missingFields.join(", ")}`];
+
+        if (this.missingFields.length > 1) {
+          for (let i = 0; i < this.missingFields.length; i++) {
+            const combination = this.missingFields.filter((_, index) => index !== i).join(", ");
+            messages.push(`FR, ${combination}`);
+            this.section2.push(`FR, ${combination}`);
+          }
+        } else {
+          messages.push(`FR, ${this.missingFields.join(", ")}`);
+          this.section2.push(`FR, ${this.missingFields.join(", ")}`);
+        }
+
+        messages.push("FR");
+        this.section3 = ["FR"];
       } else {
         if (this.languageIssue) {
           messages.push(this.languageIssue);
