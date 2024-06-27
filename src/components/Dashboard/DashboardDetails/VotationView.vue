@@ -232,20 +232,24 @@ export default {
   computed: {
     filteredStages() {
       const criteria = this.getValidationCriteria();
-      console.log("ici cri: " +criteria);
+      console.log("ici cri: CXXX333 :  " +criteria);
 
       return this.stages.filter(stage => {
         if (stage.takenBy) {
           return false; // Ne pas inclure les stages qui ont déjà été pris
         }
-
-        for (let criterion of criteria) {
-          console.log("ICI CXXX333");
+        if(criteria === "Tout validé"){
+          return true;
+        }else{
+          for (let criterion of criteria) {
+          console.log("ICI CXXX333 - " +criterion);
 
           if (stage[criterion] !== '1' && stage[criterion] !== true) {
             return false;
           }
         }
+        }
+       
         return true;
       });
     },
@@ -330,6 +334,10 @@ export default {
         criteria = criteriaString.replace('FR + manque ', '').split(', ');
       }
       else{
+        console.log("ici --" + criteriaString);
+        if(criteriaString === "Tout validé"){
+          return "Tout validé";
+        }
         criteria = criteriaString.replace('', '').split(', ');
       }
       return criteria.map(c => c.trim());
@@ -549,6 +557,7 @@ export default {
         if (this.missingFields.length > 0) {
           messages.push(`${this.missingFields.join(", ")}`);
         } else {
+          console.log("ok tout va");
           messages.push("Tout validé");
         }
       }
