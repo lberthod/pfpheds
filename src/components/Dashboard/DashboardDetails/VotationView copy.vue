@@ -65,6 +65,8 @@
                     @change="selectStage(stage, choice, { ID: stage.IDENTIFIANT })" class="checkbox-choice">
                 </td>
 
+                
+
                 <td>{{ getTotalStudents(stage) }}</td>
               </tr>
             </tbody>

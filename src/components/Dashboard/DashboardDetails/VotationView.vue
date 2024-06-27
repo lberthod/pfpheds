@@ -78,7 +78,7 @@
             </div>
           </div>
           <div v-else>
-            <p class="mt-4">Aucun stage disponible avec les critères de validation actuels.</p>
+            <p class="mt-4">Aucun stage disponible validant tous vos critères manquants</p>
           </div>
         </div>
         <div v-if="allStages.length > 0 && validationMessage[0]!=='Tout validé'" class="table-responsive mt-4">
@@ -232,7 +232,7 @@ export default {
   computed: {
     filteredStages() {
       const criteria = this.getValidationCriteria();
-      console.log("cri: " +criteria);
+      console.log("ici cri: " +criteria);
 
       return this.stages.filter(stage => {
         if (stage.takenBy) {
@@ -261,6 +261,10 @@ export default {
       } else if (this.languageIssue === "FR") {
       console.log("ICI fr");
         filteredStages = filteredStages.filter(stage => stage.FR == '1');
+      }
+      else{
+        console.log("ICI all");
+        filteredStages = filteredStages.filter(stage => stage.ALL == '1');
       }
       return filteredStages.filter(stage => !stage.takenBy); // Ne pas inclure les stages qui ont déjà été pris
     }
@@ -320,15 +324,14 @@ export default {
       if (!this.validationMessage || this.validationMessage.length === 0) return [];
       const criteriaString = this.validationMessage[0];
       let criteria = [];
-      console.log("manque : " + criteriaString);
       if (criteriaString.includes('ALL')) {
         criteria = criteriaString.replace('ALL + manque ', '').split(', ');
-        console.log("ALL + manque " + criteria);
       } else if (criteriaString.includes('FR')) {
         criteria = criteriaString.replace('FR + manque ', '').split(', ');
-        console.log("FR + manque " + criteria);
       }
-      console.log("cri" + criteria);
+      else{
+        criteria = criteriaString.replace('', '').split(', ');
+      }
       return criteria.map(c => c.trim());
     },
 
@@ -544,7 +547,7 @@ export default {
         }
 
         if (this.missingFields.length > 0) {
-          messages.push(`manque ${this.missingFields.join(", ")}`);
+          messages.push(`${this.missingFields.join(", ")}`);
         } else {
           messages.push("Tout validé");
         }
