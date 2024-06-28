@@ -39,7 +39,8 @@
             <p>Chargement des données du profil...</p>
           </div>
         </div>
-        <div class="card">
+        <!--
+         <div class="card">
           <h5>Stages</h5>
           <DataTable
             :value="stages"
@@ -63,6 +64,7 @@
             <Column field="Secteur" header="Secteur" style="min-width: 12rem" :body="secteurTemplate"></Column>
           </DataTable>
         </div>
+        -->
       </div>
     </div>
   </div>
