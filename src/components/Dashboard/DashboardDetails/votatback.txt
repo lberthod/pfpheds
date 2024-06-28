@@ -60,8 +60,8 @@
                     <td v-else>&#10060;</td>
                     <td v-for="choice in [1, 2, 3, 4, 5]" :key="choice">
                       <input type="checkbox" :checked="isSelected(stage, choice)"
-                        :disabled="isNonSelectable(stage.NomPlace, choice - 1)" @change="selectStage(stage, choice)"
-                        class="checkbox-choice">
+                        :disabled="isNonSelectable(stage.NomPlace, choice - 1)"
+                        @change="selectStage(stage, choice)" class="checkbox-choice">
                     </td>
                     <td>{{ getTotalStudents(stage) }}</td>
                   </tr>
@@ -73,71 +73,6 @@
             <p class="mt-4">Aucun stage disponible avec les critères de validation actuels.</p>
           </div>
         </div>
-
-        <!-- Section pour les places restantes disponibles -->
-        <div class="d-flex justify-content-center mt-4">
-          <div v-if="availableStages.length > 0" class="table-responsive mt-4">
-            <div class="d-flex justify-content-center">
-              <h3 class="mb-3 text-center">Places restantes disponibles</h3>
-              <table class="table table-striped align-middle mb-0 table-hover w-100 text-center">
-                <thead>
-                  <tr>
-                    <th>Institutions</th>
-                    <th>Lieux</th>
-                    <th>Secteurs</th>
-                    <th>FR</th>
-                    <th>ALL</th>
-                    <th>AIGU</th>
-                    <th>REHAB</th>
-                    <th>MSQ</th>
-                    <th>SYSINT</th>
-                    <th>Neuroger</th>
-                    <th>AMBU</th>
-                    <th>Choix 1</th>
-                    <th>Choix 2</th>
-                    <th>Choix 3</th>
-                    <th>Choix 4</th>
-                    <th>Choix 5</th>
-                    <th>Total Étudiants</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(stage, index) in availableStages" :key="index">
-                    <td>{{ stage.NomPlace }}</td>
-                    <td>{{ stage.Lieu }}</td>
-                    <td>{{ stage.Domaine }}</td>
-                    <td v-if="stage.FR == '1'">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-if="stage.ALL == '1'">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-if="stage.AIGU != ''">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-if="stage.REHAB != ''">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-if="stage.MSQ != ''">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-if="stage.SYSINT != ''">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-if="stage.NEUROGER != ''">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-if="stage.AMBU != ''">&#9989;</td>
-                    <td v-else>&#10060;</td>
-                    <td v-for="choice in [1, 2, 3, 4, 5]" :key="choice">
-                      <input type="checkbox" :checked="isSelected(stage, choice)"
-                        :disabled="isNonSelectable(stage.NomPlace, choice - 1)" @change="selectStage(stage, choice)"
-                        class="checkbox-choice">
-                    </td>
-                    <td>{{ getTotalStudents(stage) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div v-else>
-            <p class="mt-4">Aucune place restante disponible avec les critères actuels.</p>
-          </div>
-        </div>
-
         <div v-if="selectedStages.length > 0" class="mt-4 text-center">
           <h4>Stages sélectionnés</h4>
           <ul>
@@ -157,23 +92,6 @@
     </div>
   </div>
 </template>
-
-<style scoped>
-.table-responsive {
-  text-align: center;
-}
-
-th,
-td {
-  text-align: center;
-  vertical-align: middle;
-}
-
-.checkbox-choice {
-  margin: auto;
-  display: block;
-}
-</style>
 
 <script>
 import { db, auth } from '../../../../firebase.js';
@@ -196,7 +114,7 @@ export default {
       search: '',
       selectedPFP: 'PFP4',
       stages: [],
-      places: {},
+      places: [],
       selectedStages: Array(5).fill(null),
       currentStudent: null,
       currentUserEmail: null,
@@ -209,31 +127,24 @@ export default {
     };
   },
   computed: {
-    filteredStages() {
-      const criteria = this.getValidationCriteria();
-      console.log(criteria);
+  filteredStages() {
+    const criteria = this.getValidationCriteria();
+    console.log(criteria);
 
-      return this.stages.filter(stage => {
-        for (let criterion of criteria) {
-          console.log(criterion);
-          console.log(stage);
-          console.log("Stagecriter : " + stage[criterion]);
-          if (stage[criterion] !== '1' && stage[criterion] !== true) {
-            console.log("false " + stage.ALL + " -  " + criterion);
-            return false;
-          }
+    return this.stages.filter(stage => {
+      for (let criterion of criteria) {
+        console.log(criterion);
+        console.log(stage);
+        console.log("Stagecriter : " + stage[criterion]);
+        if (stage[criterion] !== '1' && stage[criterion] !== true) {
+          console.log("false " + stage.ALL + " -  " + criterion);
+          return false;
         }
-        return true;
-      });
-    },
-    availableStages() {
-      const filteredStageNames = this.filteredStages.map(stage => stage.NomPlace);
-      const selectedStageNames = this.selectedStages.filter(stage => stage).map(stage => stage.NomPlace);
-      return this.stages.filter(stage =>
-        !filteredStageNames.includes(stage.NomPlace) && !selectedStageNames.includes(stage.NomPlace)
-      );
-    }
-  },
+      }
+      return true;
+    });
+  }
+},
   methods: {
     async fetchStudentsData() {
       if (!this.selectedPFP || !this.selectedClass) return;
@@ -318,15 +229,6 @@ export default {
       }
     },
 
-    makeAllChoicesEditable() {
-      // Réinitialise la valeur de this.places pour rendre toutes les cases éditables
-      Object.keys(this.places).forEach(stageName => {
-        for (let i = 0; i < 5; i++) {
-          this.places[stageName][i] = 0;
-        }
-      });
-    },
-
     selectStage(stage, choice) {
       const isCurrentlyChecked = this.isSelected(stage, choice);
 
@@ -335,17 +237,18 @@ export default {
       }
 
       if (isCurrentlyChecked) {
-        // Deselect the stage
         this.places[stage.NomPlace][choice - 1] = 0;
-        this.selectedStages[choice - 1] = null;
+        this.activateAnother(stage.NomPlace, choice - 1);
       } else {
-        // Select the stage
+        if (this.isNonSelectable(stage.NomPlace, choice - 1)) {
+          console.log("Cette case est interdite et ne peut pas être sélectionnée.");
+          return;
+        }
         this.places[stage.NomPlace][choice - 1] = 1;
-        this.selectedStages[choice - 1] = { ...stage, choice };
+        this.disableAnother(stage.NomPlace, choice - 1);
       }
 
-      // Always make all choices editable after a selection change
-      this.makeAllChoicesEditable();
+      this.selectedStages[choice - 1] = isCurrentlyChecked ? null : { ...stage, choice };
 
       console.log("Tableau des places:", this.places);
       console.log(`Élément modifié: Place ${stage.NomPlace}, Choix ${choice}`);
@@ -389,8 +292,7 @@ export default {
     },
 
     isNonSelectable(stageName, choice) {
-      // Ne désactive jamais les cases cochées
-      return false;
+      return this.places[stageName] && this.places[stageName][choice] < 0;
     },
 
     getTotalStudents(stage) {

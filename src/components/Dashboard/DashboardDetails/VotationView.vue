@@ -11,7 +11,7 @@
         <div class="d-flex justify-content-center">
           <div v-if="filteredStages.length > 0" class="table-responsive mt-4">
             <div class="d-flex justify-content-center">
-              <h3 class="mb-3 text-center">Places de stages validant vos critères manquants : {{ validationMessage[0]}}
+              <h3 class="mb-3 text-center">Places de stages validant vos critères manquants : {{ validationMessage[0] }}
               </h3>
               <table class="table table-striped align-middle mb-0 table-hover w-100 text-center">
                 <thead>
@@ -81,7 +81,7 @@
             <p class="mt-4">Aucun stage disponible validant tous vos critères manquants</p>
           </div>
         </div>
-        <div v-if="allStages.length > 0 && validationMessage[0]!=='Tout validé'" class="table-responsive mt-4">
+        <div v-if="allStages.length > 0 && validationMessage[0] !== 'Tout validé'" class="table-responsive mt-4">
           <div class="d-flex justify-content-center">
             <h3 class="mb-3 text-center">Places de stages validant au minimum un critère manquant</h3>
             <table class="table table-striped align-middle mb-0 table-hover w-100 text-center">
@@ -232,24 +232,22 @@ export default {
   computed: {
     filteredStages() {
       const criteria = this.getValidationCriteria();
-      console.log("ici cri: CXXX333 :  " +criteria);
+      console.log("ici cri: CXXX333 :  " + criteria);
 
       return this.stages.filter(stage => {
         if (stage.takenBy) {
           return false; // Ne pas inclure les stages qui ont déjà été pris
         }
-        if(criteria === "Tout validé"){
+        if (criteria === "Tout validé") {
           return true;
-        }else{
+        } else {
           for (let criterion of criteria) {
-          console.log("ICI CXXX333 - " +criterion);
-
-          if (stage[criterion] !== '1' && stage[criterion] !== true) {
-            return false;
+            console.log("ICI CXXX333 - " + criterion);
+            if (stage[criterion] !== '1' && stage[criterion] !== true) {
+              return false;
+            }
           }
         }
-        }
-       
         return true;
       });
     },
@@ -257,21 +255,32 @@ export default {
       return [...this.filteredStages].sort((a, b) => b.priority - a.priority);
     },
     allStages() {
-      let filteredStages = this.stages;
+      let filteredStages = this.stages.filter(stage => !stage.takenBy); // Ne pas inclure les stages qui ont déjà été pris
+
       if (this.languageIssue === "ALL") {
         console.log("ICI all");
-
         filteredStages = filteredStages.filter(stage => stage.ALL == '1');
       } else if (this.languageIssue === "FR") {
-      console.log("ICI fr");
+        console.log("ICI fr");
         filteredStages = filteredStages.filter(stage => stage.FR == '1');
       }
-      else{
-        console.log("ICI all");
-        filteredStages = filteredStages.filter(stage => stage.ALL == '1');
+
+      // Filtrer les places où il y a au moins un critère disponible
+      const criteria = this.getValidationCriteria();
+      if (criteria !== "Tout validé") {
+        filteredStages = filteredStages.filter(stage => {
+          for (let criterion of criteria) {
+            if (stage[criterion] === '1' || stage[criterion] === true) {
+              return true;
+            }
+          }
+          return false;
+        });
       }
-      return filteredStages.filter(stage => !stage.takenBy); // Ne pas inclure les stages qui ont déjà été pris
+
+      return filteredStages;
     }
+
   },
   methods: {
     async fetchStudentsData() {
@@ -333,9 +342,9 @@ export default {
       } else if (criteriaString.includes('FR')) {
         criteria = criteriaString.replace('FR + manque ', '').split(', ');
       }
-      else{
+      else {
         console.log("ici --" + criteriaString);
-        if(criteriaString === "Tout validé"){
+        if (criteriaString === "Tout validé") {
           return "Tout validé";
         }
         criteria = criteriaString.replace('', '').split(', ');
