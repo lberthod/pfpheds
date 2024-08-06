@@ -185,6 +185,8 @@
         <div class="mt-4 text-center">
           <button class="btn btn-primary" @click="submitVotes" v-if="!hasVoted">Voter</button>
           <button class="btn btn-warning" @click="resetVotes" v-if="hasVoted">Réinitialiser</button>
+          <button class="btn btn-secondary" @click="downloadCSV">Télécharger CSV</button>
+
           <div v-if="showAlert" class="alert alert-success mt-3">Merci pour votre votation, elle a été prise en compte.
           </div>
         </div>
@@ -238,6 +240,8 @@ export default {
         if (stage.takenBy) {
           return false; // Ne pas inclure les stages qui ont déjà été pris
         }
+
+        // crée ici un fichier csv qui a les infos des places de stages
         if (criteria === "Tout validé") {
           return true;
         } else {
@@ -302,6 +306,7 @@ export default {
         }
       });
     },
+
 
     async fetchStagesData() {
       const dbRef = ref(db, '/PFP4-B22');
@@ -672,23 +677,51 @@ export default {
     getTotalVotes(placeName) {
       const placeVotes = this.voteCounts[placeName];
       return placeVotes ? placeVotes.total : 0;
-    }
-  },
+    },
 
-  async mounted() {
-    this.fetchStudentsData();
-    this.fetchStagesData();
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        this.currentUserEmail = user.email;
-        this.findCurrentStudent();
-      } else {
-        this.currentUserEmail = null;
-        this.currentStudent = null;
-      }
-    });
-  }
-};
+    downloadCSV() {
+      const headers = [
+        'Institutions', 'Lieux', 'Secteurs', 'FR', 'ALL', 'AIGU', 'REHAB',
+        'MSQ', 'SYSINT', 'Neuroger', 'AMBU', 
+        'takenBy'
+      ];
+
+      // Prepare the CSV rows
+      const rows = this.stages.map(stage => [
+        stage.NomPlace, stage.Lieu, stage.Domaine, stage.FR, stage.ALL, stage.AIGU,
+        stage.REHAB, stage.MSQ, stage.SYSINT, stage.NEUROGER, stage.AMBU, stage.takenBy
+      ]);
+
+      // Convert rows to CSV string
+      let csvContent = 'data:text/csv;charset=utf-8,';
+      csvContent += headers.join(',') + '\n';
+      rows.forEach(row => {
+        csvContent += row.join(',') + '\n';
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', 'stages.csv');
+      document.body.appendChild(link); // Required for Firefox
+      link.click();
+      document.body.removeChild(link);
+    },
+
+  },
+    async mounted() {
+      this.fetchStudentsData();
+      this.fetchStagesData();
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          this.currentUserEmail = user.email;
+          this.findCurrentStudent();
+        } else {
+          this.currentUserEmail = null;
+          this.currentStudent = null;
+        }
+      });
+    }
+  };
 </script>
 
 <style scoped>
