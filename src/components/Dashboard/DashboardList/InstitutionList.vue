@@ -107,7 +107,7 @@ export default {
           (institution.Name ? institution.Name.toLowerCase().includes(searchLower) : false) ||
           (institution.Street ? institution.Street.toLowerCase().includes(searchLower) : false) ||
           (institution.Lieu ? institution.Lieu.toLowerCase().includes(searchLower) : false) ||
-          (institution.Canton ? institution.Canton.toLowerCase().includes(searchLower) : false) ||
+          (institution.Canton && typeof institution.Canton === 'string' ? institution.Canton.toLowerCase().includes(searchLower) : false) ||
           (institution.URL ? institution.URL.toLowerCase().includes(searchLower) : false);
 
         return matchesSearch;

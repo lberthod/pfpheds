@@ -31,7 +31,7 @@
                 </div>
                 <div class="field col-6">
                   <label for="canton">Canton</label>
-                  <Dropdown id="canton" v-model="institution.Canton" :options="cantons" optionLabel="name" class="w-full" />
+                  <Dropdown id="canton" v-model="institution.Canton" :options="cantons" optionLabel="name" optionValue="name" class="w-full" />
                 </div>
                 <div class="field col-6">
                   <label for="street">Rue</label>
@@ -155,9 +155,33 @@ export default {
         EmailResponsablePhysio: '',
       },
       cantons: [
-        { code: 'AG', name: 'Argovie' },
-        { code: 'AI', name: 'Appenzell Rhodes-Intérieures' },
-        // ... autres cantons ...
+        { code: 'Argovie', name: 'AG' },
+        { code: 'Appenzell Rhodes-Intérieures', name: 'AI' },
+        { code: 'Appenzell Rhodes-Extérieures', name: 'AR' },
+        { code: 'Bâle-Campagne', name: 'BL' },
+        { code: 'Bâle-Ville', name: 'BS' },
+        { code: 'Berne', name: 'BE' },
+        { code: 'Fribourg', name: 'FR' },
+        { code: 'Genève', name: 'GE' },
+        { code: 'Glaris', name: 'GL' },
+        { code: 'Grisons', name: 'GR' },
+        { code: 'Jura', name: 'JU' },
+        { code: 'Lucerne', name: 'LU' },
+        { code: 'Neuchâtel', name: 'NE' },
+        { code: 'Nidwald', name: 'NW' },
+        { code: 'Obwald', name: 'OW' },
+        { code: 'Saint-Gall', name: 'SG' },
+        { code: 'Schaffhouse', name: 'SH' },
+        { code: 'Schwytz', name: 'SZ' },
+        { code: 'Soleure', name: 'SO' },
+        { code: 'Tessin', name: 'TI' },
+        { code: 'Thurgovie', name: 'TG' },
+        { code: 'Uri', name: 'UR' },
+        { code: 'Valais', name: 'VS' },
+        { code: 'Vaud', name: 'VD' },
+        { code: 'Zoug', name: 'ZG' },
+        { code: 'Zurich', name: 'ZH' },
+        { code: 'Etranger', name: 'Etranger' }
       ],
       languages: [
         { label: 'Allemand', value: 'Allemand' },

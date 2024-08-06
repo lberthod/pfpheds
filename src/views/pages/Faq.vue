@@ -92,7 +92,7 @@ const changeItem = (index) => {
                                 'hover:surface-hover': activeIndex !== i
                             }">
                             <i class="mr-2 text-lg" :class="item.icon"></i>
-                            <span>{{ item.label }}</span>
+                            <span class="text-sm">{{ item.label }}</span>
                         </a>
                     </li>
                 </ul>

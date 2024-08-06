@@ -1,11 +1,10 @@
 <template>
   <div class="surface-section px-4 py-8 md:px-6 lg:px-8">
-    <section class="text-white text-center py-5 rounded-lg mb-5">
+    <section class="text-center py-5 rounded-lg mb-5 text-white">
       <h1 class="text-5xl font-bold">Modifier l'institution</h1>
     </section>
 
     <div class="grid">
-      <!-- Main content START -->
       <div class="col-12 lg:col-12">
         <div class="card p-4 shadow-lg">
           <h1 class="mb-4">{{ institution.Name }}</h1>
@@ -14,119 +13,200 @@
             <Badge :value="institution.Canton" class="p-mr-2 p-ml-auto" />
           </div>
 
-          <div class="p-fluid">
-            <div class="p-field">
-              <label for="name">Nom</label>
-              <InputText id="name" v-model="institution.Name" />
-            </div>
-            <div class="p-field">
-              <label for="cyberlearn">Cyberlearn</label>
-              <InputText id="cyberlearn" v-model="institution.Cyberlearn" />
-            </div>
-            <div class="p-field">
-              <label for="lieu">Lieu</label>
-              <InputText id="lieu" v-model="institution.Lieu" />
-            </div>
-            <div class="p-field">
-              <label for="canton">Canton</label>
-              <Dropdown id="canton" v-model="institution.Canton" :options="cantons" optionLabel="name" class="w-full" />
-            </div>
-            <div class="p-field">
-              <label for="street">Rue</label>
-              <InputText id="street" v-model="institution.Street" />
-            </div>
-            <div class="p-field">
-              <label for="url">URL</label>
-              <InputText id="url" v-model="institution.URL" />
-            </div>
-
-            <!-- Section Critères -->
-            <div class="grid mt-3 mb-3">
-              <div class="p-field-checkbox">
-                <Checkbox v-model="institution.AMBU" />
-                <label for="ambu">AMBU</label>
-              </div>
-              <div class="p-field-checkbox">
-                <Checkbox v-model="institution.MSQ" />
-                <label for="msq">MSQ</label>
-              </div>
-              <div class="p-field-checkbox">
-                <Checkbox v-model="institution.NEUROGER" />
-                <label for="neuroger">NEURO_GER</label>
-              </div>
-              <div class="p-field-checkbox">
-                <Checkbox v-model="institution.AIGU" />
-                <label for="aigu">AIGU</label>
-              </div>
-              <div class="p-field-checkbox">
-                <Checkbox v-model="institution.SYSINT" />
-                <label for="sysint">SYS_INT</label>
-              </div>
-            </div>
-
-            <!-- Section pour les Praticiens Formateurs -->
-            <div class="p-field">
-              <label>Praticiens Formateurs</label>
-              <div v-for="(practitioner, index) in institution.PraticiensFormateurs" :key="index" class="p-mb-3">
-                <div class="p-field">
-                  <label>Nom</label>
-                  <InputText v-model="practitioner.Nom" @input="updatePractitioner(index, 'Nom', $event.target.value)" />
-                </div>
-                <div class="p-field">
-                  <label>Prénom</label>
-                  <InputText v-model="practitioner.Prenom" @input="updatePractitioner(index, 'Prenom', $event.target.value)" />
-                </div>
-                <div class="p-field">
-                  <label>Email</label>
-                  <InputText v-model="practitioner.Mail" type="email" @input="updatePractitioner(index, 'Mail', $event.target.value)" />
-                </div>
-                <Button label="Supprimer" class="p-button-danger mt-2" @click="removePractitioner(index)" />
-              </div>
-              <Dropdown v-model="selectedPractitioner" :options="availablePractitioners" optionLabel="fullName" placeholder="Sélectionner un praticien" class="w-full" />
-              <Button label="Ajouter un Praticien Formateur" class="p-button-primary mt-2" @click="addSelectedPractitioner" />
-            </div>
-
-            <div v-for="(stage, index) in stages" :key="stage.id" class="p-mb-4">
-              <h2>Place de stage</h2>
+          <div class="p-fluid grid">
+            <div class="col-12 md:col-6">
               <div class="p-field">
-                <label>Secteur</label>
-                <InputText v-model="stage.Sector" @change="updateStage(stage, 'Sector', $event.target.value)" />
+                <label for="name">Nom</label>
+                <InputText id="name" v-model="institution.Name" />
               </div>
+            </div>
+            <div class="col-12 md:col-6">
               <div class="p-field">
-                <label>Praticien Formateur</label>
-                <InputText v-model="stage.NpmPractitionerTrainer" @change="updateStage(stage, 'NpmPractitionerTrainer', $event.target.value)" />
+                <label for="cyberlearn">Cyberlearn</label>
+                <InputText id="cyberlearn" v-model="institution.Cyberlearn" />
               </div>
-
-              <div class="p-field-checkbox">
-                <Checkbox v-model="stage.AIGU" @change="updateStage(stage, 'AIGU', stage.AIGU)" />
-                <label>AIGU</label>
+            </div>
+            <div class="col-12 md:col-6">
+              <div class="p-field">
+                <label for="lieu">Lieu</label>
+                <InputText id="lieu" v-model="institution.Lieu" />
               </div>
-              <div class="p-field-checkbox">
-                <Checkbox v-model="stage.AMBU" @change="updateStage(stage, 'AMBU', stage.AMBU)" />
-                <label>AMBU</label>
+            </div>
+            <div class="col-12 md:col-6">
+              <div class="p-field">
+                <label for="canton">Canton</label>
+                <Dropdown id="canton" v-model="institution.Canton" :options="cantons" optionLabel="name" optionValue="name" class="w-full" />
               </div>
-              <div class="p-field-checkbox">
-                <Checkbox v-model="stage.MSQ" @change="updateStage(stage, 'MSQ', stage.MSQ)" />
-                <label>MSQ</label>
+            </div>
+            <div class="col-12 md:col-6">
+              <div class="p-field">
+                <label for="street">Rue</label>
+                <InputText id="street" v-model="institution.Street" />
               </div>
-              <div class="p-field-checkbox">
-                <Checkbox v-model="stage.NEUROGER" @change="updateStage(stage, 'NEUROGER', stage.NEUROGER)" />
-                <label>NEURO_GER</label>
+            </div>
+            <div class="col-12 md:col-6">
+              <div class="p-field">
+                <label for="url">URL</label>
+                <InputText id="url" v-model="institution.URL" />
               </div>
-              <div class="p-field-checkbox">
-                <Checkbox v-model="stage.SYSINT" @change="updateStage(stage, 'SYSINT', stage.SYSINT)" />
-                <label>SYS_INT</label>
-              </div>
-              <div class="p-field-checkbox">
-                <Checkbox v-model="stage.active" @change="updateStage(stage, 'active', stage.active)" />
-                <label>Active</label>
-              </div>
-              <Button label="Supprimer" class="p-button-danger mt-3" @click="supprimerStage(stage.id)" />
             </div>
 
-            <Button label="Ajouter une place de stage" class="p-button-primary mt-3" @click="ajouterPlaceDeStage" />
-            <Button label="Envoyer les Données de Stage" class="p-button-success mt-3" @click="envoyerDonnees" />
-            <Button label="Mettre à jour l'institution" class="p-button-warning mt-3" @click="updateInstitution" />
+            <!--
+            <div class="col-12">
+              <div class="p-field">
+                <label>Praticiens Formateurs</label>
+                <div v-for="(practitioner, index) in institution.PraticiensFormateurs" :key="index" class="p-mb-3 practitioner-form">
+                  <div class="grid">
+                    <div class="col-12 md:col-4">
+                      <div class="p-field">
+                        <label>Nom</label>
+                        <InputText v-model="practitioner.Nom" />
+                      </div>
+                    </div>
+                    <div class="col-12 md:col-4">
+                      <div class="p-field">
+                        <label>Prénom</label>
+                        <InputText v-model="practitioner.Prenom" />
+                      </div>
+                    </div>
+                    <div class="col-12 md:col-4">
+                      <div class="p-field">
+                        <label>Email</label>
+                        <InputText v-model="practitioner.Mail" type="email" />
+                      </div>
+                    </div>
+                  </div>
+                  <Button label="Supprimer" class="p-button-danger mt-2 btn-small" @click="removePractitioner(index)" />
+                </div>
+                <Dropdown v-model="selectedPractitioner" :options="availablePractitioners" optionLabel="fullName" placeholder="Sélectionner un praticien" class="w-full" />
+                <Button label="Ajouter un Praticien Formateur" class="p-button-primary mt-2 btn-small" @click="addSelectedPractitioner" />
+              </div>
+            </div>
+            Section pour les Praticiens Formateurs -->
+
+            <div class="col-12">
+              <div v-for="(stage, index) in institution.stages" :key="stage.id" class="p-mb-4 stage-form">
+                <h2>Place de stage</h2>
+                <div class="grid">
+                  <div class="col-12 md:col-6">
+                    <div class="p-field">
+                      <label>Nom de la place</label>
+                      <InputText v-model="stage.Sector" />
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-6">
+                    <div class="p-field">
+                      <label>Praticien.ne Formateur.trice</label>
+                      <InputText v-model="stage.NpmPractitionerTrainer" />
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <div class="p-field-checkbox">
+                      <Checkbox v-model="stage.AIGU" />
+                      <label>AIGU</label>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <div class="p-field-checkbox">
+                      <Checkbox v-model="stage.AMBU" />
+                      <label>AMBU</label>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <div class="p-field-checkbox">
+                      <Checkbox v-model="stage.MSQ" />
+                      <label>MSQ</label>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <div class="p-field-checkbox">
+                      <Checkbox v-model="stage.NEUROGER" />
+                      <label>NEURO / GER</label>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <div class="p-field-checkbox">
+                      <Checkbox v-model="stage.SYSINT" />
+                      <label>SYSINT</label>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <div class="p-field-checkbox">
+                      <Checkbox v-model="stage.REA" />
+                      <label>REHAB</label>
+                    </div>
+                  </div>
+                </div>
+                <Button label="Supprimer" class="p-button-danger mt-3 btn-small" @click="supprimerStage(stage.id)" />
+              </div>
+            </div>
+
+            <div class="col-12">
+              <Button label="Ajouter une place de stage" class="p-button-primary mt-3 btn-small" @click="toggleStageForm" />
+            </div>
+
+            <div class="col-12" v-if="showStageForm">
+              <div class="p-mb-4 stage-form">
+                <h2>Nouvelle place de stage</h2>
+                <div class="grid">
+                  <div class="col-12 md:col-6">
+                    <div class="p-field">
+                      <label>Nom de la place</label>
+                      <InputText v-model="newStage.Sector" />
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-6">
+                    <div class="p-field">
+                      <label>Praticien.ne Formateur.trice</label>
+                      <InputText v-model="newStage.NpmPractitionerTrainer" />
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <div class="p-field-checkbox">
+                      <Checkbox v-model="newStage.AIGU" />
+                      <label>AIGU</label>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <div class="p-field-checkbox">
+                      <Checkbox v-model="newStage.AMBU" />
+                      <label>AMBU</label>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <div class="p-field-checkbox">
+                      <Checkbox v-model="newStage.MSQ" />
+                      <label>MSQ</label>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <div class="p-field-checkbox">
+                      <Checkbox v-model="newStage.NEUROGER" />
+                      <label>NEURO / GER</label>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <div class="p-field-checkbox">
+                      <Checkbox v-model="newStage.SYSINT" />
+                      <label>SYSINT</label>
+                    </div>
+                  </div>
+                  <div class="col-12 md:col-4">
+                    <div class="p-field-checkbox">
+                      <Checkbox v-model="newStage.REA" />
+                      <label>REHAB</label>
+                    </div>
+                  </div>
+                </div>
+                <Button label="Ajouter" class="p-button-primary mt-3 btn-small" @click="ajouterPlaceDeStage" />
+              </div>
+            </div>
+
+            <div class="col-12">
+              <Button label="Envoyer les Données de Stage" class="p-button-success mt-3 btn-small" @click="envoyerDonnees" />
+              <Button label="Mettre à jour l'institution" class="p-button-warning mt-3 btn-small" @click="updateInstitution" />
+              <Button label="Retour" class="p-button-secondary mt-3 btn-small" @click="goBack" />
+            </div>
           </div>
         </div>
       </div>
@@ -137,7 +217,6 @@
 <script>
 import { db } from '../../../../firebase.js';
 import { ref, onValue, set, remove } from "firebase/database";
-import { watch } from 'vue';
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Checkbox from 'primevue/checkbox';
@@ -175,11 +254,47 @@ export default {
         PraticiensFormateurs: [],
         stages: [],
       },
-      stages: [],
+      newStage: {
+        Sector: '',
+        NpmPractitionerTrainer: '',
+        AIGU: false,
+        AMBU: false,
+        MSQ: false,
+        NEUROGER: false,
+        REA: false,
+        SYSINT: false,
+        active: true,
+        idInstitution: '',
+      },
+      showStageForm: false,
       cantons: [
-        { code: 'AG', name: 'Argovie' },
-        { code: 'AI', name: 'Appenzell Rhodes-Intérieures' },
-        // ... autres cantons ...
+        { code: 'Argovie', name: 'AG' },
+        { code: 'Appenzell Rhodes-Intérieures', name: 'AI' },
+        { code: 'Appenzell Rhodes-Extérieures', name: 'AR' },
+        { code: 'Bâle-Campagne', name: 'BL' },
+        { code: 'Bâle-Ville', name: 'BS' },
+        { code: 'Berne', name: 'BE' },
+        { code: 'Fribourg', name: 'FR' },
+        { code: 'Genève', name: 'GE' },
+        { code: 'Glaris', name: 'GL' },
+        { code: 'Grisons', name: 'GR' },
+        { code: 'Jura', name: 'JU' },
+        { code: 'Lucerne', name: 'LU' },
+        { code: 'Neuchâtel', name: 'NE' },
+        { code: 'Nidwald', name: 'NW' },
+        { code: 'Obwald', name: 'OW' },
+        { code: 'Saint-Gall', name: 'SG' },
+        { code: 'Schaffhouse', name: 'SH' },
+        { code: 'Schwytz', name: 'SZ' },
+        { code: 'Soleure', name: 'SO' },
+        { code: 'Tessin', name: 'TI' },
+        { code: 'Thurgovie', name: 'TG' },
+        { code: 'Uri', name: 'UR' },
+        { code: 'Valais', name: 'VS' },
+        { code: 'Vaud', name: 'VD' },
+        { code: 'Zoug', name: 'ZG' },
+        { code: 'Zurich', name: 'ZH' },
+        { code: 'Etranger', name: 'Etranger' }
       ],
       languages: ['Allemand', 'Français', 'Bilingue'],
       availablePractitioners: [],
@@ -191,7 +306,7 @@ export default {
       const stagesRef = ref(db, `/placedestage/${this.$route.params.id}`);
       onValue(stagesRef, (snapshot) => {
         if (snapshot.exists()) {
-          this.stages = Object.values(snapshot.val());
+          this.institution.stages = Object.values(snapshot.val());
         } else {
           console.error('Pas de stages trouvés');
         }
@@ -201,21 +316,10 @@ export default {
       const stageRef = ref(db, `/placedestage/${this.$route.params.id}/${stageId}`);
       remove(stageRef)
         .then(() => {
-          this.stages = this.stages.filter(stage => stage.id !== stageId);
+          this.institution.stages = this.institution.stages.filter(stage => stage.id !== stageId);
         })
         .catch((error) => {
           console.error('Erreur lors de la suppression:', error);
-        });
-    },
-    updateStage(stage, field, value) {
-      stage[field] = value;
-      const stageRef = ref(db, `placedestage/${stage.idInstitution}/${stage.id}`);
-      set(stageRef, stage)
-        .then(() => {
-          console.log(`Stage ${field} mis à jour avec succès`);
-        })
-        .catch((error) => {
-          console.error('Erreur lors de la mise à jour:', error);
         });
     },
     async envoyerDonnees() {
@@ -240,7 +344,16 @@ export default {
     },
     ajouterPlaceDeStage() {
       const newStage = {
+        ...this.newStage,
         id: `stage-${Date.now()}`,
+        idInstitution: this.$route.params.id,
+      };
+      this.institution.stages.push(newStage);
+      this.resetNewStageForm();
+      this.showStageForm = false;
+    },
+    resetNewStageForm() {
+      this.newStage = {
         Sector: '',
         NpmPractitionerTrainer: '',
         AIGU: false,
@@ -250,16 +363,11 @@ export default {
         REA: false,
         SYSINT: false,
         active: true,
-        idInstitution: this.$route.params.id,
+        idInstitution: '',
       };
-      const stageRef = ref(db, `placedestage/${this.$route.params.id}/${newStage.id}`);
-      set(stageRef, newStage)
-        .then(() => {
-          this.stages.push(newStage);
-        })
-        .catch((error) => {
-          console.error('Erreur lors de l\'ajout du stage:', error);
-        });
+    },
+    toggleStageForm() {
+      this.showStageForm = !this.showStageForm;
     },
     validateFormData() {
       return true; // Ajoutez votre logique de validation ici
@@ -297,6 +405,9 @@ export default {
           console.error('Pas de praticiens trouvés');
         }
       });
+    },
+    goBack() {
+      this.$router.go(-1);
     }
   },
   mounted() {
@@ -310,18 +421,21 @@ export default {
       }
     });
     this.chargerStages();
-    this.loadPractitioners(); // Charger les praticiens formateurs depuis Firebase lors du montage du composant
-    watch(() => this.institution, async (newVal) => {
-      try {
-        await set(ref(db, 'institutions/' + instId), newVal);
-      } catch (error) {
-        console.error('Error updating institution:', error);
-      }
-    }, { deep: true });
+    this.loadPractitioners();
   }
 };
 </script>
 
 <style scoped>
-/* Ajoutez ici votre style personnalisé */
+.practitioner-form, .stage-form {
+  border: 1px solid #e0e0e0;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+}
+
+.btn-small {
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+}
 </style>

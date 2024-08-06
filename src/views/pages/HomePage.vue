@@ -71,7 +71,7 @@ const darkMode = computed(() => {
                   </div>
                   <div class="flex align-items-center justify-content-center bg-blue-100 border-round"
                        style="width:2.5rem;height:2.5rem">
-                    <i class="pi pi-shopping-cart text-blue-500 text-xl"></i>
+                    <i class="pi pi-map text-blue-500 text-xl"></i>
                   </div>
                 </div>
               </div>
@@ -114,9 +114,9 @@ const darkMode = computed(() => {
                     <span class="block text-900 font-medium mb-3 text-4xl">110</span>
                     <div class="text-500 font-medium text-2xl">Formateur-rice-s</div>
                   </div>
-                  <div class="flex align-items-center justify-content-center bg-cyan-100 border-round"
+                  <div class="flex align-items-center justify-content-center bg-purple-100 border-round"
                        style="width:2.5rem;height:2.5rem">
-                    <i class="pi pi-inbox text-cyan-500 text-xl"></i>
+                    <i class="pi pi-flag text-purple-500 text-xl"></i>
                   </div>
                 </div>
               </div>

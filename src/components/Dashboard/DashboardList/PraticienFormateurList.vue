@@ -11,7 +11,7 @@
         :filters="filters"
         filterDisplay="menu"
         :loading="loading"
-        :globalFilterFields="['Nom', 'Prenom', 'Email']"
+        :globalFilterFields="['Nom', 'Prenom', 'Mail']"
         :globalFilter="globalFilter"
         showGridlines
       >
@@ -42,12 +42,12 @@
             <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Rechercher par prénom" />
           </template>
         </Column>
-        <Column field="Email" header="Email" style="min-width: 12rem" class="text-center">
+        <Column field="Mail" header="Mail" style="min-width: 12rem" class="text-center">
           <template #body="{ data }">
-            {{ data.Email }}
+            {{ data.Mail }}
           </template>
           <template #filter="{ filterModel }">
-            <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Rechercher par email" />
+            <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Rechercher par mail" />
           </template>
         </Column>
         <Column header="Action" style="min-width: 12rem" class="text-center">
@@ -98,7 +98,7 @@ export default {
         const matchesSearch =
           praticienFormateur.Nom.toLowerCase().includes(searchLower) ||
           praticienFormateur.Prenom.toLowerCase().includes(searchLower) ||
-          praticienFormateur.Email.toLowerCase().includes(searchLower);
+          praticienFormateur.Mail.toLowerCase().includes(searchLower);
         return matchesSearch;
       });
     }

@@ -16,7 +16,7 @@
         </div>
         <div class="p-field col-6">
           <label for="email">Email</label>
-          <InputText id="email" v-model="email" required />
+          <InputText id="mail" v-model="mail" required />
         </div>
         <Button type="submit" label="Ajouter" class="p-button-primary" />
       </form>
@@ -40,7 +40,7 @@ export default {
     return {
       prenom: '',
       nom: '',
-      email: '',
+      mail: '',
     };
   },
   methods: {
@@ -58,13 +58,13 @@ export default {
         await set(newPraticienFormateurRef, {
           Prenom: this.prenom,
           Nom: this.nom,
-          Email: this.email,
+          Email: this.mail,
         });
 
         // Réinitialiser les champs du formulaire
         this.prenom = '';
         this.nom = '';
-        this.email = '';
+        this.mail = '';
 
         // Rediriger vers la liste des praticiens formateurs
         // Assurez-vous que la route 'PraticienFormateurList' est correctement définie dans votre routeur

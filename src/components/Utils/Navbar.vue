@@ -10,19 +10,26 @@
 
         <i class="pi pi-bars text-4xl cursor-pointer block md:hidden text-700"></i>
         <div class="align-items-center flex-grow-1 hidden md:flex absolute md:static w-full md:px-0 z-3 shadow-2 md:shadow-none fadein" :class="{ hidden: isHidden }" :style="{ top: '80px', right: '0%' }">
-          <ul class="list-none p-3 md:p-0 m-0 ml-auto flex md:align-items-center select-none flex-column md:flex-row cursor-pointer surface-card md:surface-ground">
-            <li><a @click="navigateTo('/')" class="flex m-0 md:ml-5 px-0 py-3 text-900 font-medium line-height-3">Accueil</a></li>
-       
-
-            <li v-if="!user"><a @click="navigateTo('/sign_in')">
-              <Button type="button" label="Se Connecter" class="m-0 mt-3 md:mt-0 md:ml-5"></Button>
+          <ul class="list-none p-3 md:p-0 m-0 ml-auto flex md:align-items-center select-none flex-row md:flex-row cursor-pointer surface-card md:surface-ground">
+            <li class="mx-2"><a @click="navigateTo('/')" class="flex m-0 px-0 py-3 text-900 font-medium line-height-3">Accueil</a></li>
+            <li v-if="!user" class="mx-2">
+              <a @click="navigateTo('/sign_in')">
+                <Button type="button" label="Se Connecter" class="m-0"></Button>
               </a>
             </li>
-            <li  v-if="user"      ><a @click="navigateTo('/votation')" class="flex m-0 md:ml-5 px-0 py-3 text-900 font-medium line-height-3">Votation</a></li>
-
-            <li v-if="user"><a @click="logout">
-              <Button type="button" label="Déconnexion" class="m-0 mt-3 md:mt-0 md:ml-5"></Button>
-            </a>
+            <li v-if="user" class="mx-2">
+              <a @click="navigateTo('/votation')" class="flex m-0 px-0 py-3 text-900 font-medium line-height-3">Votation</a>
+            </li>
+            <li v-if="user" class="mx-2">
+              <a @click="navigateTo('/profile')" class="flex m-0 px-0 py-3 text-900 font-medium line-height-3">Profil</a>
+            </li>
+            <li v-if="user" class="mx-2">
+              <a @click="navigateTo('/admin')" class="flex m-0 px-0 py-3 text-900 font-medium line-height-3">Admin</a>
+            </li>
+            <li v-if="user" class="mx-2">
+              <a @click="logout">
+                <Button type="button" label="Déconnexion" class="m-0"></Button>
+              </a>
             </li>
           </ul>
         </div>
@@ -38,6 +45,7 @@ import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
 const router = useRouter();
 const user = ref(null);
+const isHidden = ref(true);
 
 const navigateTo = (path) => {
   router.push(path);
@@ -46,6 +54,7 @@ const navigateTo = (path) => {
 const auth = getAuth();
 onAuthStateChanged(auth, (u) => {
   user.value = u;
+  isHidden.value = !u; // Masquer le menu si l'utilisateur n'est pas connecté
 });
 
 const logout = async () => {
@@ -57,3 +66,14 @@ const logout = async () => {
   }
 };
 </script>
+
+<style scoped>
+.bg-primary {
+  background-color: #007bff;
+}
+
+.mx-2 {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+</style>

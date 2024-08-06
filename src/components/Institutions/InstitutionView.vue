@@ -18,6 +18,10 @@
                         <i class="pi pi-eye text-primary mr-2"></i>
                         <span class="text-900">Place : 2</span>
                     </span>
+                    <span class="inline-flex align-items-center py-2 px-3 font-medium border-1 surface-border border-round">
+                        <i class="pi pi-ban text-primary mr-2"></i>
+                        <span class="text-900">Site Web</span>
+                    </span>
         </div>
       </div>
     </div>
@@ -39,29 +43,6 @@
                 <div class="py-0 p-0 m-0 text-600 mb-3">
                   <p class="card-text"><i class="bi bi-globe"></i> <strong>Langue:</strong> {{ institutionDetails ? institutionDetails.Langue : '' }}</p>
                 </div>
-              </div>
-              <div class="col-12 lg:col-4">
-                <span class="text-900 block mb-3 font-bold">Critère de validation</span>
-                <ul class="p-0 m-0 flex flex-wrap flex-column xl:flex-row text-600">
-                  <li v-if="institutionDetails?.MSQ" class="flex align-items-center white-space-nowrap w-10rem block mr-2 mb-3">
-                    <span> MSQ</span>
-                  </li>
-                  <li v-if="institutionDetails?.AIGU" class="flex align-items-center white-space-nowrap w-10rem block mr-2 mb-3">
-                    <span> AIGU</span>
-                  </li>
-                  <li v-if="institutionDetails?.REA" class="flex align-items-center white-space-nowrap w-10rem block mr-2 mb-3">
-                    <span> REA</span>
-                  </li>
-                  <li v-if="institutionDetails?.SYSINT" class="flex align-items-center white-space-nowrap w-10rem block mr-2 mb-3">
-                    <span> SYSINT</span>
-                  </li>
-                  <li v-if="institutionDetails?.NEUROGER" class="flex align-items-center white-space-nowrap w-10rem block mr-2 mb-3">
-                    <span> NEURO_GER</span>
-                  </li>
-                  <li v-if="institutionDetails?.AMBU" class="flex align-items-center white-space-nowrap w-10rem block mr-2 mb-3">
-                    <span> AMBU</span>
-                  </li>
-                </ul>
               </div>
             </div>
           </TabPanel>
