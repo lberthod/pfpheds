@@ -184,7 +184,7 @@ export default {
                 SYSINT: etudiant.SYSINT || '',
                 NEUROGER: etudiant.NEUROGER || '',
                 AIGU: etudiant.AIGU || '',
-                AMBU: etudiant.CABINET || '',
+                AMBU: etudiant.AMBU || '',
                 REHAB: etudiant.REHAB || '',
                 FR: etudiant.FR || '',
                 ALL: etudiant.ALL || '',

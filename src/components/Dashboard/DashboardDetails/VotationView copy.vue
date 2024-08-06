@@ -14,65 +14,65 @@
         <div class="d-flex justify-content-center">
           <h3 class="mb-3 text-center">Toutes les places de stages</h3>
           <div v-if="selectedPFP && selectedClass" class="table-responsive mt-4">
-        <div class="d-flex justify-content-center">
-          <h3 class="mb-3 text-center">Toutes les places de stages</h3>
-          <table class="table table-striped align-middle mb-0 table-hover w-100 text-center">
-            <thead>
-              <tr>
-                <th>Institutions</th>
-                <th>Lieux</th>
-                <th>Secteurs</th>
-                <th>FR</th>
-                <th>ALL</th>
-                <th>AIGU</th>
-                <th>REHAB</th>
-                <th>MSQ</th>
-                <th>SYSINT</th>
-                <th>Neuroger</th>
-                <th>AMBU</th>
-                <th>Choix 1</th>
-                <th>Choix 2</th>
-                <th>Choix 3</th>
-                <th>Choix 4</th>
-                <th>Choix 5</th>
-                <th>Total Étudiants</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(stage, index) in filteredStages" :key="index">
-                <td>{{ stage.NomPlace }}</td>
-                <td>{{ stage.Lieu }}</td>
-                <td>{{ stage.Domaine }}</td>
-                <td v-if="stage.FR == '1'">&#9989;</td>
-                <td v-else>&#10060;</td>
-                <td v-if="stage.ALL == '1'">&#9989;</td>
-                <td v-else>&#10060;</td>
-                <td v-if="stage.AIGU != ''">&#9989;</td>
-                <td v-else>&#10060;</td>
-                <td v-if="stage.REHAB != ''">&#9989;</td>
-                <td v-else>&#10060;</td>
-                <td v-if="stage.MSQ != ''">&#9989;</td>
-                <td v-else>&#10060;</td>
-                <td v-if="stage.SYSINT != ''">&#9989;</td>
-                <td v-else>&#10060;</td>
-                <td v-if="stage.NEUROGER != ''">&#9989;</td>
-                <td v-else>&#10060;</td>
-                <td v-if="stage.AMBU != ''">&#9989;</td>
-                <td v-else>&#10060;</td>
-                <td v-for="choice in [1, 2, 3, 4, 5]" :key="choice">
-                  <input type="checkbox" :checked="isSelected(stage, choice)"
-                    :disabled="isNonSelectable(stage.NomPlace, choice - 1)"
-                    @change="selectStage(stage, choice, { ID: stage.IDENTIFIANT })" class="checkbox-choice">
-                </td>
+            <div class="d-flex justify-content-center">
+              <h3 class="mb-3 text-center">Toutes les places de stages</h3>
+              <table class="table table-striped align-middle mb-0 table-hover w-100 text-center">
+                <thead>
+                  <tr>
+                    <th>Institutions</th>
+                    <th>Lieux</th>
+                    <th>Secteurs</th>
+                    <th>FR</th>
+                    <th>ALL</th>
+                    <th>AIGU</th>
+                    <th>REHAB</th>
+                    <th>MSQ</th>
+                    <th>SYSINT</th>
+                    <th>Neuroger</th>
+                    <th>AMBU</th>
+                    <th>Choix 1</th>
+                    <th>Choix 2</th>
+                    <th>Choix 3</th>
+                    <th>Choix 4</th>
+                    <th>Choix 5</th>
+                    <th>Total Étudiants</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(stage, index) in filteredStages" :key="index">
+                    <td>{{ stage.NomPlace }}</td>
+                    <td>{{ stage.Lieu }}</td>
+                    <td>{{ stage.Domaine }}</td>
+                    <td v-if="stage.FR == '1'">&#9989;</td>
+                    <td v-else>&#10060;</td>
+                    <td v-if="stage.ALL == '1'">&#9989;</td>
+                    <td v-else>&#10060;</td>
+                    <td v-if="stage.AIGU != ''">&#9989;</td>
+                    <td v-else>&#10060;</td>
+                    <td v-if="stage.REHAB != ''">&#9989;</td>
+                    <td v-else>&#10060;</td>
+                    <td v-if="stage.MSQ != ''">&#9989;</td>
+                    <td v-else>&#10060;</td>
+                    <td v-if="stage.SYSINT != ''">&#9989;</td>
+                    <td v-else>&#10060;</td>
+                    <td v-if="stage.NEUROGER != ''">&#9989;</td>
+                    <td v-else>&#10060;</td>
+                    <td v-if="stage.AMBU != ''">&#9989;</td>
+                    <td v-else>&#10060;</td>
+                    <td v-for="choice in [1, 2, 3, 4, 5]" :key="choice">
+                      <input type="checkbox" :checked="isSelected(stage, choice)"
+                        :disabled="isNonSelectable(stage.NomPlace, choice - 1)"
+                        @change="selectStage(stage, choice, { ID: stage.IDENTIFIANT })" class="checkbox-choice">
+                    </td>
 
-                
 
-                <td>{{ getTotalStudents(stage) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+
+                    <td>{{ getTotalStudents(stage) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
           <!-- Section 1 -->
           <div v-if="getPlacesForValidationMessage().length">
             <h4 class="mt-4">Section 1</h4>
@@ -129,7 +129,7 @@
               </tbody>
             </table>
           </div>
-          
+
           <!-- Les autres sections... -->
         </div>
       </div>
@@ -172,7 +172,7 @@ export default {
   },
   data() {
     return {
-      section1:[],
+      section1: [],
 
       etudiants: [],
       selectedClass: 'BA22',
@@ -242,16 +242,16 @@ export default {
     },
 
     getPlacesForValidationMessage() {
-  if (!this.validationMessage || this.validationMessage.length === 0) return [];
+      if (!this.validationMessage || this.validationMessage.length === 0) return [];
 
-  const criteriaString = this.validationMessage[0];
-  const criteria = criteriaString.replace('ALL + manque ', '').split(', ').map(c => c.trim());
-  console.log(criteria);
+      const criteriaString = this.validationMessage[0];
+      const criteria = criteriaString.replace('ALL + manque ', '').split(', ').map(c => c.trim());
+      console.log(criteria);
 
-  return this.filteredStages.filter(stage => 
-    criteria.every(field => stage[field] === '1')
-  );
-},
+      return this.filteredStages.filter(stage =>
+        criteria.every(field => stage[field] === '1')
+      );
+    },
 
 
     updateStudent(etudiant) {

@@ -36,7 +36,7 @@
             </table>
           </div>
           <div v-else>
-            <p>Chargement des données du profil...</p>
+            <p>Chargement des données du profil ...</p>
           </div>
         </div>
         <div class="card">
@@ -97,14 +97,22 @@ const fetchStages = async () => {
 };
 
 const fetchUserProfile = async (email) => {
+  console.log("mail 1");
+
   const db = getDatabase();
   const studentsRef = dbRef(db, 'students');
   const snapshot = await get(studentsRef);
+  console.log("mail 1");
+
   if (snapshot.exists()) {
     const studentsData = snapshot.val();
+    console.log("mail 1");
     for (const classKey in studentsData) {
       for (const studentKey in studentsData[classKey]) {
         const student = studentsData[classKey][studentKey];
+        console.log("mail" + student.Mail);
+        console.log( "email " + email.toLowerCase());
+
         if (student.Mail && student.Mail.toLowerCase() === email.toLowerCase()) {
           userProfile.value = {
             id: studentKey,
