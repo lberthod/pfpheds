@@ -39,6 +39,7 @@ import DashbordAdmin from '@/views/dashboards/DashbordAdmin.vue'
 import ListUser from '@/views/user-management/ListUser.vue'
 import InstitutionView from '@/components/Institutions/InstitutionView.vue'
 import Management_votation from '@/components/Dashboard/DashboardDetails/Management_votation.vue'
+import ManagementPlace from '@/components/Dashboard/DashboardDetails/Management_place.vue'
 import VotationLese from '@/components/Dashboard/DashboardDetails/VotationLese.vue'
 
 
@@ -80,11 +81,12 @@ const routes = [
   { path: '/reception', component: Reception, name: 'Reception' },
   { path: '/votation', component: VotationView, name: 'VotationView' },
   { path: '/management_votation', component: Management_votation, name: 'Management_votation' },
+  { path: '/management_places', component: ManagementPlace, name: 'Management_places' },
   { path: '/institution_details/:id', component: InstitutionDetails, name: 'InstitutionDetails', props: true },
   { path: '/:pathMatch(.*)*', component: Error404, name: 'Error404' },
   { path: '/listUser', component: ListUser, name: 'ListUser' },
   { path: '/votation_lese', component: VotationLese, name: 'VotationLese' },
-
+  
   // ... autres routes si nécessaires
 ]
 
