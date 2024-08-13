@@ -25,7 +25,7 @@
                 <label for="cyberlearn">Cyberlearn</label>
                 <InputGroup>
                   <InputGroupAddon>www</InputGroupAddon>
-                <InputText id="cyberlearn" v-model="institution.Cyberlearn" />
+                  <InputText id="cyberlearn" v-model="institution.Cyberlearn" />
                 </InputGroup>
               </div>
             </div>
@@ -66,6 +66,24 @@
               <div class="p-field">
                 <label for="categorie">Catégorie</label>
                 <Dropdown id="categorie" v-model="institution.Categorie" :options="categories" optionLabel="label" optionValue="value" class="w-full" />
+              </div>
+            </div>
+
+            <!-- Image upload section -->
+            <div class="col-12">
+              <h4>Médias de l'institution</h4>
+              <Divider />
+              <div class="text-center">
+                <div class="border-2 border-dashed surface-border rounded-lg p-5 mb-3">
+                  <i class="pi pi-image text-5xl"></i>
+                  <h6 class="mt-2">Téléchargez l'image de l'institution ici, ou <a href="#!" class="text-primary" @click="triggerFileInput">Parcourir</a></h6>
+                  <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileChange" />
+                  <p class="mt-2">Seulement JPG, JPEG et PNG. Dimensions suggérées: 600px * 450px.</p>
+                </div>
+                <div v-if="institution.ImageURL" class="image-preview">
+                  <img :src="institution.ImageURL" alt="Image de l'institution" class="w-full h-auto"/>
+                  <Button type="button" label="Supprimer l'image" class="p-button-danger mt-2" icon="pi pi-trash" @click="removeImage" />
+                </div>
               </div>
             </div>
 
@@ -225,9 +243,11 @@
   </div>
 </template>
 
+
 <script>
 import { db } from '../../../../firebase.js';
 import { ref, onValue, set, remove } from "firebase/database";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import InputText from 'primevue/inputtext';
 import Dropdown from 'primevue/dropdown';
 import Checkbox from 'primevue/checkbox';
@@ -258,12 +278,13 @@ export default {
         Street: '',
         URL: '',
         Categorie: '',
-        Convention: null, // Initialize as null
-        AccordCadre: null, // Initialize as null
+        Convention: null,
+        AccordCadre: null,
         Remarque: '',
         Latitude: '',
         Longitude: '',
         Langue: '',
+        ImageURL: '', // Champ pour l'URL de l'image
         AIGU: false,
         REA: false,
         AMBU: false,
@@ -286,6 +307,7 @@ export default {
         active: true,
         idInstitution: '',
       },
+      imageFile: null, // Pour stocker l'image sélectionnée
       showStageForm: false,
       cantons: [
         { code: 'Argovie', name: 'AG' },
@@ -323,7 +345,6 @@ export default {
         { label: 'Cabinet privé hors canton', value: 'Cabinet privé hors canton' },
         { label: 'Institution étrangère', value: 'Institution étrangère' }
       ],
-
       languages: ['Allemand', 'Français', 'Bilingue'],
       availablePractitioners: [],
       selectedPractitioner: null
@@ -351,24 +372,49 @@ export default {
         });
     },
     async envoyerDonnees() {
-      if (this.validateFormData()) {
-        try {
-          const stageRef = ref(db, 'placedestage/' + this.$route.params.id + "/");
-          await set(stageRef, this.institution.stages);
-          alert('Les données de stage ont été envoyées avec succès.');
-        } catch (error) {
-          console.error('Erreur lors de l’envoi des données de stage:', error);
-        }
-      }
-    },
-    async updateInstitution() {
       try {
         const instRef = ref(db, 'institutions/' + this.$route.params.id);
+
+        // Si une image a été sélectionnée, upload l'image
+        if (this.imageFile) {
+          const storage = getStorage();
+          const imageRef = storageRef(storage, `institutions/${this.$route.params.id}/image`);
+          await uploadBytes(imageRef, this.imageFile);
+          const imageURL = await getDownloadURL(imageRef);
+          this.institution.ImageURL = imageURL;
+        }
+
         const institutionData = {
           ...this.institution,
           Convention: this.institution.Convention ? this.convertToDateOnly(this.institution.Convention) : null,
           AccordCadre: this.institution.AccordCadre ? this.convertToDateOnly(this.institution.AccordCadre) : null
         };
+
+        await set(instRef, institutionData);
+        alert('Les données de l\'institution ont été mises à jour avec succès.');
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour des données de l\'institution:', error);
+      }
+    },
+    async updateInstitution() {
+      try {
+        const instRef = ref(db, 'institutions/' + this.$route.params.id);
+
+        // Si une image a été sélectionnée, upload l'image
+        if (this.imageFile) {
+          const storage = getStorage();
+          const imageRef = storageRef(storage, `institutions/${this.$route.params.id}/image`);
+          await uploadBytes(imageRef, this.imageFile);
+          const imageURL = await getDownloadURL(imageRef);
+          this.institution.ImageURL = imageURL;
+        }
+
+        const institutionData = {
+          ...this.institution,
+          Convention: this.institution.Convention ? this.convertToDateOnly(this.institution.Convention) : null,
+          AccordCadre: this.institution.AccordCadre ? this.convertToDateOnly(this.institution.AccordCadre) : null
+        };
+
         await set(instRef, institutionData);
         alert('Les données de l\'institution ont été mises à jour avec succès.');
       } catch (error) {
@@ -410,6 +456,17 @@ export default {
     validateFormData() {
       return true; // Ajoutez votre logique de validation ici
     },
+    onFileChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.imageFile = file;
+        this.institution.ImageURL = URL.createObjectURL(file); // Prévisualisation de l'image localement
+      }
+    },
+    removeImage() {
+      this.imageFile = null;
+      this.institution.ImageURL = '';
+    },
     addSelectedPractitioner() {
       const practitioner = this.availablePractitioners.find(p => p.id === this.selectedPractitioner);
       if (practitioner) {
@@ -441,6 +498,9 @@ export default {
           console.error('Pas de praticiens trouvés');
         }
       });
+    },
+    triggerFileInput() {
+      this.$refs.fileInput.click();
     },
     goBack() {
       this.$router.go(-1);
@@ -478,4 +538,16 @@ export default {
   font-size: 0.875rem;
   padding: 0.5rem 1rem;
 }
+
+.hidden {
+  display: none;
+}
+
+.image-preview img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
 </style>
+
+

@@ -148,12 +148,10 @@
     </section>
   </div>
 </template>
-
 <script>
 import { db } from '../../../../firebase.js';
 import { ref, set, push } from "firebase/database";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
-import { watch } from 'vue';
 import Steps from 'primevue/steps';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
@@ -198,6 +196,7 @@ export default {
         EmailResponsablePhysio: '',
       },
       imageFile: null, // Pour stocker l'image sélectionnée
+      documentFile: null, // Pour stocker le document sélectionné
       cantons: [
         { code: 'Argovie', name: 'AG' },
         { code: 'Appenzell Rhodes-Intérieures', name: 'AI' },
@@ -264,13 +263,22 @@ export default {
         const newInstKey = newInstRef.key;
         this.institution.key = newInstKey;
 
+        const storage = getStorage();
+
         // Si une image a été sélectionnée, on l'upload d'abord
         if (this.imageFile) {
-          const storage = getStorage();
           const imageRef = storageRef(storage, `institutions/${newInstKey}/image`);
           await uploadBytes(imageRef, this.imageFile);
           const imageURL = await getDownloadURL(imageRef);
           this.institution.ImageURL = imageURL;
+        }
+
+        // Si un document a été sélectionné, on l'upload d'abord
+        if (this.documentFile) {
+          const documentRef = storageRef(storage, `institutions/${newInstKey}/document`);
+          await uploadBytes(documentRef, this.documentFile);
+          const documentURL = await getDownloadURL(documentRef);
+          this.institution.DocumentURL = documentURL;
         }
 
         // Ensuite, on sauvegarde les informations de l'institution
@@ -287,13 +295,24 @@ export default {
         this.institution.ImageURL = URL.createObjectURL(file); // Afficher l'image localement
       }
     },
+    onDocumentChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.documentFile = file;
+      }
+    },
     removeImage() {
       this.imageFile = null;
       this.institution.ImageURL = '';
+    },
+    removeDocument() {
+      this.documentFile = null;
+      this.institution.DocumentURL = '';
     }
   }
 };
 </script>
+
 
 <style scoped>
 .hidden {

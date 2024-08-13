@@ -3,22 +3,26 @@
   <div class="surface-card p-4 shadow-2 border-round">
     <div class="flex justify-content-between flex-column-reverse md:flex-row align-items-center ml-8">
       <div>
-        <div class="flex align-items-center text-900 font-medium text-6xl mb-2 pl-8 pr-8 ">{{ institutionDetails ? institutionDetails.Name : 'Chargement...' }}</div>
-        <span class="text-900 font-bold text-3xl mb-4 mt-2 pl-8 pr-8"><strong> {{ institutionDetails ? institutionDetails.Lieu : '' }} </strong> - {{ institutionDetails ? institutionDetails.Street : '' }}</span>
+        <div class="flex align-items-center text-900 font-medium text-6xl mb-2 pl-8 pr-8 ">
+          {{ institutionDetails ? institutionDetails.Name : 'Chargement...' }}
+        </div>
+        <span class="text-900 font-bold text-3xl mb-4 mt-2 pl-8 pr-8">
+          <strong> {{ institutionDetails ? institutionDetails.Lieu : '' }} </strong> - {{ institutionDetails ? institutionDetails.Street : '' }}
+        </span>
         <div class="flex flex-wrap justify-content-center md:justify-content-start gap-3 mt-2 pl-8 pr-8">
-                    <span class="inline-flex align-items-center py-2 px-3 font-medium border-1 surface-border border-round">
-                      <i class="pi pi-comments text-primary mr-2"></i>
-                        <span class="text-900"> Langue : {{ institutionDetails ? institutionDetails.Langue : '' }}</span>
-                    </span>
           <span class="inline-flex align-items-center py-2 px-3 font-medium border-1 surface-border border-round">
-                        <i class="pi pi-comments text-primary mr-2"></i>
-                        <span class="text-900">Canton : {{ institutionDetails ? institutionDetails.Canton : '' }}</span>
-                    </span>
+            <i class="pi pi-comments text-primary mr-2"></i>
+            <span class="text-900"> Langue : {{ institutionDetails ? institutionDetails.Langue : '' }}</span>
+          </span>
+          <span class="inline-flex align-items-center py-2 px-3 font-medium border-1 surface-border border-round">
+            <i class="pi pi-comments text-primary mr-2"></i>
+            <span class="text-900">Canton : {{ institutionDetails ? institutionDetails.Canton : '' }}</span>
+          </span>
         </div>
       </div>
     </div>
     <div class="text-center my-4">
-      <img :src="institutionDetails ? institutionDetails.imageUrl : 'https://eduport.webestica.com/assets/images/courses/4by3/21.jpg'" alt="Institution Image" class="w-100px institution-image shadow">
+      <img :src="institutionDetails ? institutionDetails.ImageURL : 'https://eduport.webestica.com/assets/images/courses/4by3/21.jpg'" alt="Institution Image" class="w-100px institution-image shadow">
     </div>
     <div class="grid mb-4 justify-content-center ">
       <div class="col-8 lg:col-5">
@@ -120,23 +124,10 @@ export default {
       onValue(institutionRef, (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.val();
-          this.institutionDetails = {
-            ...data,
-            imageSrc: data.imagePath ? '' : 'https://eduport.webestica.com/assets/images/courses/4by3/21.jpg'
-          };
+          this.institutionDetails = data;
 
-          if (data.imagePath) {
-            const imageRef = storageRef(db, data.imagePath);
-            getDownloadURL(imageRef).then((url) => {
-              this.institutionDetails.imageSrc = url;
-              this.initMapIfNeeded();
-            }).catch(() => {
-              this.institutionDetails.imageSrc = 'https://eduport.webestica.com/assets/images/courses/4by3/21.jpg';
-              this.initMapIfNeeded();
-            });
-          } else {
-            this.initMapIfNeeded();
-          }
+          // Initialize map if coordinates are available
+          this.initMapIfNeeded();
         } else {
           this.$router.push({ name: 'Error404' });
         }

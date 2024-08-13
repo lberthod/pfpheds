@@ -2,17 +2,17 @@
   <Navbar />
   <section class="surface-section px-4 py-8 md:px-6 lg:px-8">
     <div class="container flex justify-center">
-      <!-- Column for Cards -->
+      <!-- Colonne pour les cartes -->
       <div class="flex-grow">
         <h1 class="text-900 font-bold text-5xl text-center">Institutions</h1>
         <p class="text-600 font-normal text-xl text-center">Découvrez les institutions partenaires de notre réseau</p>
         <div class="grid flex justify-center">
-          <div class="col-12 md:col-6 xl:col-3 p-3 flex justify-center" v-for="institution in paginatedInstitutions" :key="institution.id" style="">
+          <div class="col-12 md:col-6 xl:col-3 p-3 flex justify-center" v-for="institution in paginatedInstitutions" :key="institution.id">
 
             <Card style="width: 20rem; height: 35rem; display: flex; flex-direction: column; justify-content: space-between;">
               <template #header>
                 <div style="position: relative;">
-                  <img :src="institution.imageUrl || '/default-image.jpg'" alt="institution" class="card-image" />
+                  <img :src="institution.ImageURL || '/default-image.jpg'" alt="institution" class="card-image" />
                   <Tag style="position: absolute; top: 20px; left: 20px;">{{ institution.Canton }}</Tag>
                 </div>
                 <p class="text-center text-2xl text-900 font-bold">{{ institution.Name }}</p>
@@ -47,12 +47,9 @@
 <script>
 import { db } from '../../../firebase.js';
 import { ref, onValue } from "firebase/database";
-import { getDownloadURL, ref as storageRef } from "firebase/storage";
 import AppDarkAndLightMode from '@/layout/AppDarkAndLightMode.vue';
 import Navbar from '@/components/Utils/Navbar.vue';
 import Footer from '@/components/Utils/Footer.vue';
-
-
 
 export default {
   components: { Navbar, Footer, AppDarkAndLightMode },
@@ -60,74 +57,15 @@ export default {
     return {
       allInstitutions: [],
       institutionDetailsPath: '/institution/',
-      institutions: [],
       currentPage: 1,
       itemsPerPage: 12,
       totalInstitutions: 0,
-      category: {
-        title: "Catégories",
-        categories: {
-          AIGU: false,
-          REA: false,
-          MSQ: false,
-          SYSINT: false,
-          NEURO_GER: false,
-          AMBU: false,
-        }
-      },
-      language: {
-        Français: false,
-        Allemand: false,
-        Anglais: false,
-        Italien: false,
-      },
-      level: {
-        PFP1A: false,
-        PFP1B: false,
-        PFP2: false,
-        PFP3: false,
-        PFP4: false,
-      },
-      canton: {
-        title: "Cantons",
-        cantons: {
-          AG: false,
-          AI: false,
-          AR: false,
-          BE: false,
-          BL: false,
-          BS: false,
-          FL: false,
-          FR: false,
-          GE: false,
-          GL: false,
-          GR: false,
-          JU: false,
-          LU: false,
-          NE: false,
-          NW: false,
-          OW: false,
-          SG: false,
-          SH: false,
-          SO: false,
-          SZ: false,
-          TG: false,
-          TI: false,
-          UR: false,
-          VD: false,
-          VS: false,
-          ZH: false,
-          ZG: false,
-          Étranger: false,
-        }
-      }
     };
   },
   computed: {
     paginatedInstitutions() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
       const end = start + this.itemsPerPage;
-      console.log("Paginating from:", start, "to", end); // Debug information
       return this.allInstitutions.slice(start, end);
     },
     totalPages() {
@@ -137,23 +75,14 @@ export default {
   methods: {
     fetchInstitutionsFromFirebase() {
       const institutionsRef = ref(db, 'institutions/');
-      onValue(institutionsRef, async (snapshot) => {
+      onValue(institutionsRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          const imagePromises = Object.keys(data).map(async key => {
-            const institution = { id: key, ...data[key] };
-            if (institution.imagePath) {
-              const imageRef = storageRef(storage, institution.imagePath);
-              institution.imageSrc = await getDownloadURL(imageRef).catch(() => 'https://eduport.webestica.com/assets/images/courses/4by3/21.jpg');
-            } else {
-              institution.imageSrc = 'https://eduport.webestica.com/assets/images/courses/4by3/21.jpg'; // Chemin d'une image par défaut si aucune image n'est fournie
-            }
-            if (institution.URL && !institution.URL.startsWith('http')) {
-              institution.URL = 'http://' + institution.URL;
-            }
-            return institution;
-          });
-          this.allInstitutions = await Promise.all(imagePromises);
+          this.allInstitutions = Object.keys(data).map(key => ({
+            id: key,
+            ...data[key],
+            ImageURL: data[key].ImageURL || '/default-image.jpg', // Utilisation correcte du champ ImageURL
+          }));
           this.totalInstitutions = this.allInstitutions.length;
         } else {
           this.allInstitutions = [];
@@ -170,23 +99,19 @@ export default {
       }
     },
     onPageChange(event) {
-      this.currentPage = event.page;
+      this.currentPage = event.page + 1; // Les pages commencent à 1 dans ce cas
       this.itemsPerPage = event.rows;
       this.$nextTick(() => {
         this.updatePageData();
       });
     },
-    addToFavorites(id) {
-      console.log("Added to favorites: ", id);
-    },
     goToDetails(id) {
       if (id) {
         this.$router.push({ name: 'InstitutionView', params: { id: id } });
       } else {
-        console.error("ID is undefined for this institution.");
+        console.error("L'ID est indéfini pour cette institution.");
       }
     },
-
   },
   mounted() {
     this.fetchInstitutionsFromFirebase();
@@ -197,19 +122,21 @@ export default {
 <style scoped>
 .card-image {
   width: 100%;
-  height: 15rem; /* Adjusted height */
+  height: 15rem; /* Hauteur ajustée */
   object-fit: cover;
   margin-bottom: 1rem;
   border-radius: 0.5rem;
 }
 
-@media (min-width: 992px) { /* Adjustments for larger screens */
+@media (min-width: 992px) {
+  /* Ajustements pour les écrans plus grands */
   .container {
     display: flex;
-    justify-content: center; /* Centering the container to add space on the sides */
+    justify-content: center; /* Centrer le conteneur pour ajouter de l'espace sur les côtés */
   }
+
   .grid {
-    justify-content: center; /* Centering the grid */
+    justify-content: center; /* Centrer la grille */
   }
 }
 </style>
