@@ -65,6 +65,16 @@
             <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Rechercher par canton" />
           </template>
         </Column>
+
+        <Column field="Accord Cadre" header="Accord Cadre" style="min-width: 12rem" class="text-center">
+        <template #body="{ data }">
+          {{ data.AccordCadre }}
+        </template>
+        <template #filter="{ filterModel }">
+          <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Rechercher par date" />
+        </template>
+        </Column>
+
         <Column header="Action" style="min-width: 12rem" class="text-center">
           <template #body="{ data }">
             <Button label="Détails" class="mb-2 mr-2" @click="goToDetails(data.key)" />
