@@ -1,7 +1,7 @@
 <template>
   <Navbar />
   <section class="surface-section px-4 py-8 md:px-6 lg:px-8">
-    <div class="container flex justify-center">
+    <div class="container flex">
       <!-- Colonne pour les cartes -->
       <div class="flex-grow">
         <h1 class="text-900 font-bold text-5xl text-center">Institutions</h1>
@@ -15,11 +15,13 @@
                   <img :src="institution.ImageURL || '/default-image.jpg'" alt="institution" class="card-image" />
                   <Tag style="position: absolute; top: 20px; left: 20px;">{{ institution.Canton }}</Tag>
                 </div>
-                <p class="text-center text-2xl text-900 font-bold">{{ institution.Name }}</p>
+                <p class="text-center text-xl text-900 font-bold m-1">{{ institution.Name }}</p>
               </template>
               <template #subtitle>
                 <div class="text-center">
                   <p>{{ institution.Lieu }} <Tag>{{ institution.Langue }}</Tag></p>
+                  <!-- Tronquer la description ici -->
+                  <p class="m-0">{{ truncateText(institution.Description, 80) }}</p>
                 </div>
               </template>
               <template #content>
@@ -73,6 +75,12 @@ export default {
     },
   },
   methods: {
+    truncateText(text, length) {
+      if (text && text.length > length) {
+        return text.substring(0, length) + '...';
+      }
+      return text;
+    },
     fetchInstitutionsFromFirebase() {
       const institutionsRef = ref(db, 'institutions/');
       onValue(institutionsRef, (snapshot) => {
