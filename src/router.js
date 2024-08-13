@@ -25,6 +25,7 @@ import EnseignentForm from "@/components/Dashboard/DashboardForms/EnseignentForm
 import EnseignentFormModif from "@/components/Dashboard/DashboardForms/EnseignentFormModif.vue";
 import EnseignentList from "@/components/Dashboard/DashboardList/EnseignentList.vue";
 import PraticienFormateurForm from "@/components/Dashboard/DashboardForms/PraticienFormateurForm.vue";
+import PraticienFormateurFormModif from "@/components/Dashboard/DashboardForms/PraticienFormateurFormModif.vue";
 import PraticienFormateurList from "@/components/Dashboard/DashboardList/PraticienFormateurList.vue";
 import Faq from "@/components/Home/Faq.vue";
 import SignIn from "@/components/Utils/SignIn.vue";
@@ -70,7 +71,7 @@ const routes = [
   { path: '/enseignent_form_modif/:enseignantId', component: EnseignentFormModif, name: 'EnseignentFormModif', props: true },
   { path: '/enseignent_list', component: EnseignentList, name: 'EnseignentList' },
   { path: '/praticien_formateur_form', component: PraticienFormateurForm, name: 'PraticienFormateurForm'  },
-  { path: '/praticien_formateur_form_modif/:praticienFormateurId', component: PraticienFormateurForm, name: 'PraticienFormateurFormModif', props: true },
+  { path: '/praticien_formateur_form_modif/:praticienFormateurId', component: PraticienFormateurFormModif, name: 'PraticienFormateurFormModif', props: true },
   { path: '/praticien_formateur_list', component: PraticienFormateurList, name: 'PraticienFormateurList' },
   { path: '/info_externe', component: InfoExterne, name: 'InfoExterne' },
   { path: '/faq', component: Faq, name: 'Faq' },

@@ -109,6 +109,8 @@ const replaceLink = (linkElement, href, onComplete) => {
       <RadioButton v-model="colorScheme" name="colorScheme" value="light" @change="() => changeColorScheme('light')" inputId="outlined_input"></RadioButton>
       <label for="outlined_input">Clair</label>
     </div>
+
+
     <div class="field-radiobutton flex-1">
       <RadioButton v-model="colorScheme" name="colorScheme" value="dim" @change="() => changeColorScheme('dim')" inputId="filled_input"></RadioButton>
       <label for="filled_input">Sombre</label>

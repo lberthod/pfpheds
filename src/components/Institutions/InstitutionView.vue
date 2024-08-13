@@ -14,14 +14,6 @@
                         <i class="pi pi-comments text-primary mr-2"></i>
                         <span class="text-900">Canton : {{ institutionDetails ? institutionDetails.Canton : '' }}</span>
                     </span>
-          <span class="inline-flex align-items-center py-2 px-3 font-medium border-1 surface-border border-round">
-                        <i class="pi pi-eye text-primary mr-2"></i>
-                        <span class="text-900">Place : 2</span>
-                    </span>
-                    <span class="inline-flex align-items-center py-2 px-3 font-medium border-1 surface-border border-round">
-                        <i class="pi pi-ban text-primary mr-2"></i>
-                        <span class="text-900">Site Web</span>
-                    </span>
         </div>
       </div>
     </div>

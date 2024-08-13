@@ -13,6 +13,7 @@
         <Steps :model="steps" :activeIndex="activeIndex" class="mb-5" />
         <div class="p-fluid">
           <form @submit.prevent="envoyerDonnees">
+            <!-- Détails de l'institution -->
             <div v-if="activeIndex === 0">
               <h4>Détail de l'institution</h4>
               <Divider />
@@ -21,9 +22,19 @@
                   <label for="name">Nom</label>
                   <InputText id="name" v-model="institution.Name" class="w-full" />
                 </div>
-                <div class="field col-12">
+                <div class="field col-6">
                   <label for="cyberlearn">Cyberlearn</label>
-                  <InputText id="cyberlearn" v-model="institution.Cyberlearn" class="w-full" />
+                  <InputGroup>
+                    <InputGroupAddon>www</InputGroupAddon>
+                    <InputText id="cyberlearn" v-model="institution.Cyberlearn" class="w-full" />
+                  </InputGroup>
+                </div>
+                <div class="field col-6">
+                  <label for="url">URL</label>
+                  <InputGroup>
+                    <InputGroupAddon>www</InputGroupAddon>
+                    <InputText id="url" v-model="institution.URL" class="w-full" />
+                  </InputGroup>
                 </div>
                 <div class="field col-6">
                   <label for="lieu">Lieu</label>
@@ -45,54 +56,77 @@
                   <label for="longitude">Longitude</label>
                   <InputText id="longitude" v-model="institution.Longitude" class="w-full" placeholder="Ex: 2.3522" />
                 </div>
-                <div class="field col-12">
-                  <label for="url">URL</label>
-                  <InputText id="url" v-model="institution.URL" class="w-full" />
+                <div class="col-12">
+                  <label for="description">Description</label>
+                  <Textarea id="description" v-model="institution.Description" rows="3" class="w-full" />
                 </div>
               </div>
             </div>
 
+            <!-- Informations supplémentaires -->
             <div v-if="activeIndex === 1">
               <h4>Informations supplémentaires</h4>
               <Divider />
               <div class="grid formgrid">
-                <div class="field col-8">
+                <div class="col-12 md:col-6">
+                  <label for="key">ID</label>
+                  <InputText id="key" v-model="institution.key" />
+                </div>
+                <div class="col-12 md:col-6">
+                  <label for="categorie">Catégorie</label>
+                  <Dropdown id="categorie" v-model="institution.Categorie" :options="categories" optionLabel="label" optionValue="value" class="w-full" />
+                </div>
+                <div class="col-12 md:col-6">
+                  <label for="convention">Convention</label>
+                  <Calendar id="convention" v-model="institution.Convention" dateFormat="yy-mm-dd" />
+                </div>
+                <div class="col-12 md:col-6">
+                  <label for="accordCadre">Accord Cadre</label>
+                  <Calendar id="accordCadre" v-model="institution.AccordCadre" dateFormat="yy-mm-dd" />
+                </div>
+                <div class="col-12">
+                  <label for="remarque">Remarque convention / accord cadre</label>
+                  <Textarea id="remarque" v-model="institution.Remarque" />
+                </div>
+                <div class="col-12 md:col-8">
                   <label for="nomResponsablePhysio">Nom Responsable Physio</label>
                   <InputText id="nomResponsablePhysio" v-model="institution.NomResponsablePhysio" class="w-full" />
                 </div>
-                <div class="field col-4">
+                <div class="col-12 md:col-4">
                   <label for="language">Langue</label>
                   <Dropdown id="language" v-model="institution.Langue" :options="languages" class="w-full" />
                 </div>
-                <div class="field col-4">
+                <div class="col-12 md:col-6">
                   <label for="phoneResponsablePhysio">Téléphone Responsable Physio</label>
                   <InputText id="phoneResponsablePhysio" v-model="institution.PhoneResponsablePhysio" class="w-full" />
                 </div>
-                <div class="field col-4">
+                <div class="col-12 md:col-6">
                   <label for="emailResponsablePhysio">Email Responsable Physio</label>
                   <InputText id="emailResponsablePhysio" v-model="institution.EmailResponsablePhysio" type="email" class="w-full" />
                 </div>
               </div>
             </div>
 
+            <!-- Médias de l'institution -->
             <div v-if="activeIndex === 2">
               <h4>Médias de l'institution</h4>
               <Divider />
               <div class="text-center">
                 <div class="border-2 border-dashed surface-border rounded-lg p-5 mb-3">
                   <i class="pi pi-image text-5xl"></i>
-                  <h6 class="mt-2">Téléchargez l'image de l'institution ici, ou <a href="#!" class="text-primary">Parcourir</a></h6>
-                  <input type="file" accept="image/*" class="hidden" @change="onFileChange" />
+                  <h6 class="mt-2">Téléchargez l'image de l'institution ici, ou <a href="#!" class="text-primary" @click.prevent="$refs.fileInput.click()">Parcourir</a></h6>
+                  <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileChange" />
                   <p class="mt-2">Seulement JPG, JPEG et PNG. Dimensions suggérées: 600px * 450px.</p>
                 </div>
-                <Button type="button" label="Supprimer l'image" class="p-button-danger mt-2" icon="pi pi-trash" />
+                <Button type="button" label="Supprimer l'image" class="p-button-danger mt-2" icon="pi pi-trash" @click="removeImage" />
               </div>
               <div class="field mt-4">
                 <label for="imageUrl">URL de l'image</label>
-                <InputText id="imageUrl" v-model="institution.ImageURL" class="w-full" />
+                <InputText id="imageUrl" v-model="institution.ImageURL" class="w-full" readonly />
               </div>
             </div>
 
+            <!-- Description de l'institution -->
             <div v-if="activeIndex === 3">
               <h4>Description</h4>
               <Divider />
@@ -102,6 +136,7 @@
               </div>
             </div>
 
+            <!-- Boutons de navigation -->
             <div class="flex justify-content-between mt-5">
               <Button v-if="activeIndex > 0" type="button" label="Précédent" class="p-button-secondary" @click="goToPrevStep" />
               <Button v-if="activeIndex < steps.length - 1" type="button" label="Suivant" class="p-button-primary ml-auto" @click="goToNextStep" />
@@ -116,7 +151,8 @@
 
 <script>
 import { db } from '../../../../firebase.js';
-import { ref, onValue, set, update } from "firebase/database";
+import { ref, set, push } from "firebase/database";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { watch } from 'vue';
 import Steps from 'primevue/steps';
 import InputText from 'primevue/inputtext';
@@ -124,6 +160,7 @@ import Textarea from 'primevue/textarea';
 import Dropdown from 'primevue/dropdown';
 import Button from 'primevue/button';
 import Divider from 'primevue/divider';
+import Calendar from 'primevue/calendar';
 
 export default {
   name: 'InstitutionForm',
@@ -133,7 +170,8 @@ export default {
     Textarea,
     Dropdown,
     Button,
-    Divider
+    Divider,
+    Calendar
   },
   data() {
     return {
@@ -146,14 +184,20 @@ export default {
         Description: '',
         Street: '',
         URL: '',
+        Categorie: '',
         Latitude: '',
         Longitude: '',
         Langue: '',
         ImageURL: '',
+        Convention: null,
+        AccordCadre: null,
+        Remarque: '',
+        key: '',
         NomResponsablePhysio: '',
         PhoneResponsablePhysio: '',
         EmailResponsablePhysio: '',
       },
+      imageFile: null, // Pour stocker l'image sélectionnée
       cantons: [
         { code: 'Argovie', name: 'AG' },
         { code: 'Appenzell Rhodes-Intérieures', name: 'AI' },
@@ -183,6 +227,13 @@ export default {
         { code: 'Zurich', name: 'ZH' },
         { code: 'Etranger', name: 'Etranger' }
       ],
+      categories: [
+        { label: 'Institution valaisanne', value: 'Institution valaisanne' },
+        { label: 'Cabinet privé valaisan', value: 'Cabinet privé valaisan' },
+        { label: 'Institution hors canton', value: 'Institution hors canton' },
+        { label: 'Cabinet privé hors canton', value: 'Cabinet privé hors canton' },
+        { label: 'Institution étrangère', value: 'Institution étrangère' }
+      ],
       languages: [
         { label: 'Allemand', value: 'Allemand' },
         { label: 'Français', value: 'Français' },
@@ -195,44 +246,6 @@ export default {
         { label: 'Description' }
       ]
     };
-  },
-  mounted() {
-    const instId = this.$route.params.instSlug;
-    const instRef = ref(db, 'institutions/' + instId);
-
-    onValue(instRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        Object.assign(this.institution, data);
-      } else {
-        console.error('Institution does not exist');
-      }
-    }, {
-      onlyOnce: true,
-    });
-
-    const placedestageRef = ref(db, 'placedestage/' + this.$route.params.instSlug);
-
-    onValue(placedestageRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const allPlacedestage = snapshot.val();
-        const matchedPlacedestage = Object.values(allPlacedestage).filter(
-          placedestage => placedestage.idInstitution === this.$route.params.instSlug
-        );
-        this.placedestages = matchedPlacedestage;
-      } else {
-        console.error('Pas de place de stages disponibles');
-        this.placedestages = [];
-      }
-    });
-
-    watch(() => this.institution, async (newVal) => {
-      try {
-        await set(instRef, newVal);
-      } catch (error) {
-        console.error('Error updating institution:', error);
-      }
-    }, { deep: true });
   },
   methods: {
     goToNextStep() {
@@ -247,32 +260,43 @@ export default {
     },
     async envoyerDonnees() {
       try {
-        const stageRef = ref(db, 'placedestage/' + this.$route.params.instSlug);
-        const newStageData = {};
-        for (const stage of this.institution.stages) {
-          newStageData[stage.id] = stage;
+        const newInstRef = push(ref(db, 'institutions'));
+        const newInstKey = newInstRef.key;
+        this.institution.key = newInstKey;
+
+        // Si une image a été sélectionnée, on l'upload d'abord
+        if (this.imageFile) {
+          const storage = getStorage();
+          const imageRef = storageRef(storage, `institutions/${newInstKey}/image`);
+          await uploadBytes(imageRef, this.imageFile);
+          const imageURL = await getDownloadURL(imageRef);
+          this.institution.ImageURL = imageURL;
         }
-        await update(stageRef, newStageData);
-        this.institution.stages = [];
+
+        // Ensuite, on sauvegarde les informations de l'institution
+        await set(newInstRef, this.institution);
         this.$router.push({ name: 'InstitutionList' });
       } catch (error) {
-        console.error('Erreur lors de l’envoi des données de stage:', error);
+        console.error('Erreur lors de l’envoi des données:', error);
       }
     },
     onFileChange(event) {
       const file = event.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.institution.ImageURL = e.target.result;
-        };
-        reader.readAsDataURL(file);
+        this.imageFile = file;
+        this.institution.ImageURL = URL.createObjectURL(file); // Afficher l'image localement
       }
+    },
+    removeImage() {
+      this.imageFile = null;
+      this.institution.ImageURL = '';
     }
   }
 };
 </script>
 
 <style scoped>
-
+.hidden {
+  display: none;
+}
 </style>

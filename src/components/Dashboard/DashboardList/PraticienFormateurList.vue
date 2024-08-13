@@ -63,7 +63,7 @@
 
 <script>
 import { db } from '../../../../firebase.js';
-import { ref, onValue, set } from "firebase/database";
+import { ref, onValue, remove } from "firebase/database";
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import InputText from 'primevue/inputtext';
@@ -95,11 +95,11 @@ export default {
     filteredPraticiensFormateurs() {
       const searchLower = this.globalFilter.toLowerCase();
       return this.praticiensFormateurs.filter(praticienFormateur => {
-        const matchesSearch =
-          praticienFormateur.Nom.toLowerCase().includes(searchLower) ||
-          praticienFormateur.Prenom.toLowerCase().includes(searchLower) ||
-          praticienFormateur.Mail.toLowerCase().includes(searchLower);
-        return matchesSearch;
+        const nom = praticienFormateur.Nom ? praticienFormateur.Nom.toLowerCase() : '';
+        const prenom = praticienFormateur.Prenom ? praticienFormateur.Prenom.toLowerCase() : '';
+        const mail = praticienFormateur.Mail ? praticienFormateur.Mail.toLowerCase() : '';
+
+        return nom.includes(searchLower) || prenom.includes(searchLower) || mail.includes(searchLower);
       });
     }
   },
@@ -118,6 +118,7 @@ export default {
       });
     } catch (error) {
       console.error('Erreur de récupération des données des praticiens formateurs', error);
+      this.loading = false;
     }
   },
   methods: {
@@ -125,7 +126,9 @@ export default {
       if (confirm('Êtes-vous sûr de vouloir supprimer ce praticien formateur ?')) {
         try {
           const praticienFormateurRef = ref(db, 'praticiensFormateurs/' + praticienFormateurId);
-          await set(praticienFormateurRef, null);
+          await remove(praticienFormateurRef);
+          // Rafraîchir la liste des praticiens formateurs
+          this.praticiensFormateurs = this.praticiensFormateurs.filter(p => p.id !== praticienFormateurId);
         } catch (error) {
           console.error('Erreur de suppression du praticien formateur', error);
         }

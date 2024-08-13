@@ -15,8 +15,8 @@
           <InputText id="nom" v-model="nom" required />
         </div>
         <div class="p-field">
-          <label for="email">Email</label>
-          <InputText id="email" v-model="email" required />
+          <label for="mail">Mail</label>
+          <InputText id="mail" v-model="mail" required />
         </div>
         <Button type="submit" label="Mettre à jour" class="p-button-primary" />
       </form>
@@ -43,7 +43,7 @@ export default {
     return {
       prenom: '',
       nom: '',
-      email: '',
+      mail: '',
     };
   },
   async mounted() {
@@ -55,7 +55,7 @@ export default {
           const data = snapshot.val();
           this.prenom = data.Prenom;
           this.nom = data.Nom;
-          this.email = data.Email;
+          this.mail = data.Mail;
         } else {
           console.error('Praticien formateur non trouvé');
         }
@@ -74,7 +74,7 @@ export default {
           await set(praticienFormateurRef, {
             Prenom: this.prenom,
             Nom: this.nom,
-            Email: this.email,
+            Mail: this.mail,
           });
           this.$router.push({ name: 'PraticienFormateurList' });
         } catch (error) {

@@ -23,7 +23,10 @@
             <div class="col-12 md:col-6">
               <div class="p-field">
                 <label for="cyberlearn">Cyberlearn</label>
+                <InputGroup>
+                  <InputGroupAddon>www</InputGroupAddon>
                 <InputText id="cyberlearn" v-model="institution.Cyberlearn" />
+                </InputGroup>
               </div>
             </div>
             <div class="col-12 md:col-6">
@@ -47,42 +50,50 @@
             <div class="col-12 md:col-6">
               <div class="p-field">
                 <label for="url">URL</label>
-                <InputText id="url" v-model="institution.URL" />
+                <InputGroup>
+                  <InputGroupAddon>www</InputGroupAddon>
+                  <InputText id="url" v-model="institution.URL" placeholder="Site Web" />
+                </InputGroup>
+              </div>
+            </div>
+            <div class="col-12 md:col-6">
+              <div class="p-field">
+                <label for="key">ID</label>
+                <InputText id="key" v-model="institution.key" />
+              </div>
+            </div>
+            <div class="col-12 md:col-6">
+              <div class="p-field">
+                <label for="categorie">Catégorie</label>
+                <Dropdown id="categorie" v-model="institution.Categorie" :options="categories" optionLabel="label" optionValue="value" class="w-full" />
               </div>
             </div>
 
-            <!--
-            <div class="col-12">
+            <div class="col-12 md:col-12">
               <div class="p-field">
-                <label>Praticiens Formateurs</label>
-                <div v-for="(practitioner, index) in institution.PraticiensFormateurs" :key="index" class="p-mb-3 practitioner-form">
-                  <div class="grid">
-                    <div class="col-12 md:col-4">
-                      <div class="p-field">
-                        <label>Nom</label>
-                        <InputText v-model="practitioner.Nom" />
-                      </div>
-                    </div>
-                    <div class="col-12 md:col-4">
-                      <div class="p-field">
-                        <label>Prénom</label>
-                        <InputText v-model="practitioner.Prenom" />
-                      </div>
-                    </div>
-                    <div class="col-12 md:col-4">
-                      <div class="p-field">
-                        <label>Email</label>
-                        <InputText v-model="practitioner.Mail" type="email" />
-                      </div>
-                    </div>
-                  </div>
-                  <Button label="Supprimer" class="p-button-danger mt-2 btn-small" @click="removePractitioner(index)" />
-                </div>
-                <Dropdown v-model="selectedPractitioner" :options="availablePractitioners" optionLabel="fullName" placeholder="Sélectionner un praticien" class="w-full" />
-                <Button label="Ajouter un Praticien Formateur" class="p-button-primary mt-2 btn-small" @click="addSelectedPractitioner" />
+                <label for="remarque">Description</label>
+                <Textarea id="remarque" v-model="institution.Description" />
               </div>
             </div>
-            Section pour les Praticiens Formateurs -->
+
+            <div class="col-12 md:col-6">
+              <div class="p-field">
+                <label for="convention">Convention</label>
+                <Calendar id="convention" v-model="institution.Convention" dateFormat="yy-mm-dd" />
+              </div>
+            </div>
+            <div class="col-12 md:col-6">
+              <div class="p-field">
+                <label for="accordCadre">Accord Cadre</label>
+                <Calendar id="accordCadre" v-model="institution.AccordCadre" dateFormat="yy-mm-dd" />
+              </div>
+            </div>
+            <div class="col-12 md:col-12">
+              <div class="p-field">
+                <label for="remarque">Remarque convention / accord cadre</label>
+                <Textarea id="remarque" v-model="institution.Remarque" />
+              </div>
+            </div>
 
             <div class="col-12">
               <div v-for="(stage, index) in institution.stages" :key="stage.id" class="p-mb-4 stage-form">
@@ -97,7 +108,7 @@
                   <div class="col-12 md:col-6">
                     <div class="p-field">
                       <label>Praticien.ne Formateur.trice</label>
-                      <InputText v-model="stage.NpmPractitionerTrainer" />
+                      <Dropdown v-model="stage.NpmPractitionerTrainers" :options="availablePractitioners" optionLabel="fullName" optionValue="fullName" multiple placeholder="Sélectionner des praticiens" class="w-full" />
                     </div>
                   </div>
                   <div class="col-12 md:col-4">
@@ -158,7 +169,7 @@
                   <div class="col-12 md:col-6">
                     <div class="p-field">
                       <label>Praticien.ne Formateur.trice</label>
-                      <InputText v-model="newStage.NpmPractitionerTrainer" />
+                      <MultiSelect  v-model="newStage.NpmPractitionerTrainers" :options="availablePractitioners" optionLabel="fullName" optionValue="fullName" multiple placeholder="Sélectionner des praticiens" class="w-full" />
                     </div>
                   </div>
                   <div class="col-12 md:col-4">
@@ -222,6 +233,8 @@ import Dropdown from 'primevue/dropdown';
 import Checkbox from 'primevue/checkbox';
 import Button from 'primevue/button';
 import Badge from 'primevue/badge';
+import Calendar from 'primevue/calendar';
+import Textarea from 'primevue/textarea';
 
 export default {
   name: 'InstitutionFormModif',
@@ -230,7 +243,9 @@ export default {
     Dropdown,
     Checkbox,
     Button,
-    Badge
+    Badge,
+    Calendar,
+    Textarea
   },
   data() {
     return {
@@ -242,6 +257,10 @@ export default {
         Description: '',
         Street: '',
         URL: '',
+        Categorie: '',
+        Convention: null, // Initialize as null
+        AccordCadre: null, // Initialize as null
+        Remarque: '',
         Latitude: '',
         Longitude: '',
         Langue: '',
@@ -253,10 +272,11 @@ export default {
         SYSINT: false,
         PraticiensFormateurs: [],
         stages: [],
+        key: ''
       },
       newStage: {
         Sector: '',
-        NpmPractitionerTrainer: '',
+        NpmPractitionerTrainers: [],
         AIGU: false,
         AMBU: false,
         MSQ: false,
@@ -296,6 +316,14 @@ export default {
         { code: 'Zurich', name: 'ZH' },
         { code: 'Etranger', name: 'Etranger' }
       ],
+      categories: [
+        { label: 'Institution valaisanne', value: 'Institution valaisanne' },
+        { label: 'Cabinet privé valaisan', value: 'Cabinet privé valaisan' },
+        { label: 'Institution hors canton', value: 'Institution hors canton' },
+        { label: 'Cabinet privé hors canton', value: 'Cabinet privé hors canton' },
+        { label: 'Institution étrangère', value: 'Institution étrangère' }
+      ],
+
       languages: ['Allemand', 'Français', 'Bilingue'],
       availablePractitioners: [],
       selectedPractitioner: null
@@ -336,11 +364,21 @@ export default {
     async updateInstitution() {
       try {
         const instRef = ref(db, 'institutions/' + this.$route.params.id);
-        await set(instRef, this.institution);
+        const institutionData = {
+          ...this.institution,
+          Convention: this.institution.Convention ? this.convertToDateOnly(this.institution.Convention) : null,
+          AccordCadre: this.institution.AccordCadre ? this.convertToDateOnly(this.institution.AccordCadre) : null
+        };
+        await set(instRef, institutionData);
         alert('Les données de l\'institution ont été mises à jour avec succès.');
       } catch (error) {
         console.error('Erreur lors de la mise à jour des données de l\'institution:', error);
       }
+    },
+    convertToDateOnly(date) {
+      const offset = date.getTimezoneOffset();
+      const adjustedDate = new Date(date.getTime() - offset * 60 * 1000);
+      return adjustedDate.toISOString().split('T')[0];
     },
     ajouterPlaceDeStage() {
       const newStage = {
@@ -355,7 +393,7 @@ export default {
     resetNewStageForm() {
       this.newStage = {
         Sector: '',
-        NpmPractitionerTrainer: '',
+        NpmPractitionerTrainers: [],
         AIGU: false,
         AMBU: false,
         MSQ: false,
@@ -390,15 +428,13 @@ export default {
       this.$set(this.institution.PraticiensFormateurs[index], field, value);
     },
     loadPractitioners() {
-      const practitionersRef = ref(db, 'PraticiensFormateurs');
+      const practitionersRef = ref(db, 'praticiensFormateurs');
       onValue(practitionersRef, (snapshot) => {
         if (snapshot.exists()) {
-          const practitioners = Object.values(snapshot.val()).map((practitioner, index) => ({
-            id: index + 1,
-            Nom: practitioner.Nom,
-            Prenom: practitioner.Prenom.trim(),
-            Mail: practitioner.Mail,
-            fullName: `${practitioner.Prenom.trim()} ${practitioner.Nom}`
+          const practitioners = Object.keys(snapshot.val()).map(key => ({
+            id: key,
+            ...snapshot.val()[key],
+            fullName: `${snapshot.val()[key].Prenom.trim()} ${snapshot.val()[key].Nom}`
           }));
           this.availablePractitioners = practitioners;
         } else {
@@ -415,7 +451,11 @@ export default {
     const instRef = ref(db, 'institutions/' + instId);
     onValue(instRef, (snapshot) => {
       if (snapshot.exists()) {
-        this.institution = snapshot.val();
+        this.institution = {
+          ...snapshot.val(),
+          Convention: snapshot.val().Convention ? new Date(snapshot.val().Convention + 'T00:00:00') : null,
+          AccordCadre: snapshot.val().AccordCadre ? new Date(snapshot.val().AccordCadre + 'T00:00:00') : null
+        };
       } else {
         console.error('Institution does not exist');
       }

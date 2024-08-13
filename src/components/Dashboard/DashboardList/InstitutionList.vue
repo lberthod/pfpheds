@@ -6,12 +6,12 @@
         :value="filteredInstitutions"
         :paginator="true"
         :rows="10"
-        dataKey="id"
+        dataKey="key"
         :rowHover="true"
         v-model:filters="filters"
         filterDisplay="menu"
         :loading="loading"
-        :globalFilterFields="['Name', 'Street', 'Lieu', 'Canton']"
+        :globalFilterFields="['Name', 'Street', 'Lieu', 'Canton', 'key']"
         showGridlines
       >
         <template #header>
@@ -25,6 +25,14 @@
         </template>
         <template #empty> Aucun institution trouvée. </template>
         <template #loading> Chargement des données des institutions. Veuillez patienter. </template>
+        <Column field="key" header="ID" style="min-width: 6rem" class="text-center">
+          <template #body="{ data }">
+            {{ data.key }}
+          </template>
+          <template #filter="{ filterModel }">
+            <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="ID" />
+          </template>
+        </Column>
         <Column field="Name" header="Nom de l'institution" style="min-width: 12rem" class="text-center">
           <template #body="{ data }">
             {{ data.Name }}
@@ -59,9 +67,9 @@
         </Column>
         <Column header="Action" style="min-width: 12rem" class="text-center">
           <template #body="{ data }">
-            <Button label="Détails" class="mb-2 mr-2" @click="goToDetails(data.id)" />
-            <Button label="Modifier" class="mb-2 mr-2" @click="goToInstitutionFormModif(data.id)" />
-            <Button label="Supprimer" class="mb-2 mr-2" @click="supprimerInstitution(data.id)" />
+            <Button label="Détails" class="mb-2 mr-2" @click="goToDetails(data.key)" />
+            <Button label="Modifier" class="mb-2 mr-2" @click="goToInstitutionFormModif(data.key)" />
+            <Button label="Supprimer" class="mb-2 mr-2" @click="supprimerInstitution(data.key)" />
           </template>
         </Column>
       </DataTable>
@@ -108,7 +116,8 @@ export default {
           (institution.Street ? institution.Street.toLowerCase().includes(searchLower) : false) ||
           (institution.Lieu ? institution.Lieu.toLowerCase().includes(searchLower) : false) ||
           (institution.Canton && typeof institution.Canton === 'string' ? institution.Canton.toLowerCase().includes(searchLower) : false) ||
-          (institution.URL ? institution.URL.toLowerCase().includes(searchLower) : false);
+          (institution.URL ? institution.URL.toLowerCase().includes(searchLower) : false) ||
+          (institution.key ? institution.key.toLowerCase().includes(searchLower) : false);
 
         return matchesSearch;
       });
@@ -119,7 +128,7 @@ export default {
       const institutionsRef = ref(db, 'institutions/');
       onValue(institutionsRef, (snapshot) => {
         const data = snapshot.val();
-        this.institutions = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+        this.institutions = data ? Object.keys(data).map(key => ({ key, ...data[key] })) : [];
         this.loading = false;
       });
     } catch (error) {

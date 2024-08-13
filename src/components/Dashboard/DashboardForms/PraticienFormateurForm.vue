@@ -15,7 +15,7 @@
           <InputText id="nom" v-model="nom" required />
         </div>
         <div class="p-field col-6">
-          <label for="email">Email</label>
+          <label for="mail">Mail</label>
           <InputText id="mail" v-model="mail" required />
         </div>
         <Button type="submit" label="Ajouter" class="p-button-primary" />
@@ -26,7 +26,7 @@
 
 <script>
 import { db } from '../../../../firebase.js';
-import { ref, get, set } from "firebase/database";
+import { ref, push, set } from "firebase/database";
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 
@@ -46,19 +46,14 @@ export default {
   methods: {
     async addNewPraticienFormateur() {
       try {
-        const praticiensFormateursRef = ref(db, 'praticiensFormateurs'); // Assurez-vous que cette référence est correcte
+        const praticiensFormateursRef = ref(db, 'praticiensFormateurs');
 
-        // Obtenir les données actuelles pour compter le nombre de praticiens formateurs
-        const snapshot = await get(praticiensFormateursRef);
-        const praticiensFormateursData = snapshot.val();
-        const nextPraticienFormateurId = praticiensFormateursData ? Object.keys(praticiensFormateursData).length + 1 : 1;
-
-        // Création d'un nouveau praticien formateur avec un identifiant séquentiel
-        const newPraticienFormateurRef = ref(db, 'praticiensFormateurs/' + nextPraticienFormateurId);
+        // Utilisation de push pour générer une nouvelle clé unique
+        const newPraticienFormateurRef = push(praticiensFormateursRef);
         await set(newPraticienFormateurRef, {
           Prenom: this.prenom,
           Nom: this.nom,
-          Email: this.mail,
+          Mail: this.mail,
         });
 
         // Réinitialiser les champs du formulaire
@@ -67,7 +62,6 @@ export default {
         this.mail = '';
 
         // Rediriger vers la liste des praticiens formateurs
-        // Assurez-vous que la route 'PraticienFormateurList' est correctement définie dans votre routeur
         this.$router.push({ name: 'PraticienFormateurList' });
       } catch (error) {
         console.error('Erreur d’ajout du nouveau praticien formateur', error);
