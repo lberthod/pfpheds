@@ -29,16 +29,22 @@
                 </InputGroup>
               </div>
             </div>
-            <div class="col-12 md:col-6">
+            <div class="col-12 md:col-4">
               <div class="p-field">
                 <label for="lieu">Lieu</label>
                 <InputText id="lieu" v-model="institution.Lieu" />
               </div>
             </div>
-            <div class="col-12 md:col-6">
+            <div class="col-12 md:col-4">
               <div class="p-field">
                 <label for="canton">Canton</label>
                 <Dropdown id="canton" v-model="institution.Canton" :options="cantons" optionLabel="name" optionValue="name" class="w-full" />
+              </div>
+            </div>
+            <div class="col-12 md:col-4">
+              <div class="p-field">
+                <label for="canton">Langue</label>
+                <Dropdown id="langue" v-model="institution.Langue" :options="langues" optionLabel="name" optionValue="name" class="w-full" />
               </div>
             </div>
             <div class="col-12 md:col-6">
@@ -337,6 +343,12 @@ export default {
         { code: 'Zoug', name: 'ZG' },
         { code: 'Zurich', name: 'ZH' },
         { code: 'Etranger', name: 'Etranger' }
+      ],
+      langues: [
+        { code: 'Français', name: 'FR' },
+        { code: 'Allemand', name: 'ALL' },
+        { code: 'Billingue', name: 'BIL' },
+        { code: 'Italien', name: 'IT' },
       ],
       categories: [
         { label: 'Institution valaisanne', value: 'Institution valaisanne' },

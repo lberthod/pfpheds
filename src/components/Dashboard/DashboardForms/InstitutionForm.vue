@@ -93,8 +93,10 @@
                   <InputText id="nomResponsablePhysio" v-model="institution.NomResponsablePhysio" class="w-full" />
                 </div>
                 <div class="col-12 md:col-4">
-                  <label for="language">Langue</label>
-                  <Dropdown id="language" v-model="institution.Langue" :options="languages" class="w-full" />
+                  <div class="p-field">
+                    <label for="canton">Langue</label>
+                    <Dropdown id="langue" v-model="institution.Langue" :options="langues" optionLabel="name" optionValue="name" class="w-full" />
+                  </div>
                 </div>
                 <div class="col-12 md:col-6">
                   <label for="phoneResponsablePhysio">Téléphone Responsable Physio</label>
@@ -233,10 +235,11 @@ export default {
         { label: 'Cabinet privé hors canton', value: 'Cabinet privé hors canton' },
         { label: 'Institution étrangère', value: 'Institution étrangère' }
       ],
-      languages: [
-        { label: 'Allemand', value: 'Allemand' },
-        { label: 'Français', value: 'Français' },
-        { label: 'Bilingue', value: 'Bilingue' }
+      langues: [
+        { code: 'Français', name: 'FR' },
+        { code: 'Allemand', name: 'ALL' },
+        { code: 'Billingue', name: 'BIL' },
+        { code: 'Italien', name: 'IT' },
       ],
       steps: [
         { label: 'Détail de l\'institution' },

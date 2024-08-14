@@ -38,6 +38,9 @@
                 <span class="text-900 block mb-3 font-bold">Informations générales de l'institution :</span>
                 <div class="py-0 p-0 m-0 text-600 mb-3">
                   <p class="card-text"><i class="bi bi-globe"></i> <strong>Langue:</strong> {{ institutionDetails ? institutionDetails.Langue : '' }}</p>
+                  <p class="card-text"><i class="bi bi-globe"></i> <strong>Canton:</strong> {{ institutionDetails ? institutionDetails.Canton : '' }}</p>
+                  <p class="card-text"><i class="bi bi-geo-alt-fill"></i> <strong>Adresse:</strong> {{ institutionDetails ? institutionDetails.Street : '' }}</p>
+                  <p class="card-text"><i class="bi bi-geo-alt-fill"></i> <strong>Lieu:</strong> {{ institutionDetails ? institutionDetails.Lieu : '' }}</p>
                 </div>
               </div>
             </div>
