@@ -682,7 +682,7 @@ export default {
     downloadCSV() {
       const headers = [
         'Institutions', 'Lieux', 'Secteurs', 'FR', 'ALL', 'AIGU', 'REHAB',
-        'MSQ', 'SYSINT', 'Neuroger', 'AMBU', 
+        'MSQ', 'SYSINT', 'Neuroger', 'AMBU',
         'takenBy'
       ];
 

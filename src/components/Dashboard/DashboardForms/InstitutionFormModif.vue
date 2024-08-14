@@ -62,12 +62,7 @@
                 </InputGroup>
               </div>
             </div>
-            <div class="col-12 md:col-6">
-              <div class="p-field">
-                <label for="key">ID</label>
-                <InputText id="key" v-model="institution.key" />
-              </div>
-            </div>
+
             <div class="col-12 md:col-6">
               <div class="p-field">
                 <label for="categorie">Catégorie</label>

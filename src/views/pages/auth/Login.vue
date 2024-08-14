@@ -37,7 +37,7 @@
           <div class="mb-4 flex flex-wrap gap-3">
             <Checkbox name="checkbox" v-model="rememberMe" binary class="mr-2"></Checkbox>
             <label for="checkbox" class="text-900 font-medium mr-8">Remember Me</label>
-            <a class="text-600 cursor-pointer hover:text-primary cursor-pointer ml-auto transition-colors transition-duration-300">Reset password</a>
+            <a class="text-600 cursor-pointer hover:text-primary cursor-pointer ml-auto transition-colors transition-duration-300" @click="resetPassword">Reset password</a>
           </div>
 
           <Button label="Se connecter" class="w-full" @click="submitForm" />
@@ -52,7 +52,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 import { useToast } from 'primevue/usetoast';
 import { useLayout } from '@/layout/composables/layout';
 
@@ -68,18 +68,29 @@ const submitForm = async () => {
   try {
     await signInWithEmailAndPassword(auth, email.value, password.value);
     toast.add({ severity: 'success', summary: 'Connexion réussie', detail: 'Vous allez être redirigé.', life: 3000 });
-    // Ajout du délai avant la redirection
     setTimeout(() => {
-      router.push('/votation');
-    }, 1500); // 2000 millisecondes de délai
+      router.push('/');
+    }, 1500);
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Erreur de connexion', detail: `Échec de la connexion`, life: 5000 });
   }
 };
-</script>
 
+const resetPassword = async () => {
+  if (!email.value) {
+    toast.add({ severity: 'warn', summary: 'Email requis', detail: 'Veuillez entrer votre email pour réinitialiser le mot de passe.', life: 5000 });
+    return;
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, email.value);
+    toast.add({ severity: 'success', summary: 'Email envoyé', detail: 'Un email de réinitialisation de mot de passe a été envoyé.', life: 5000 });
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Erreur', detail: `Impossible d'envoyer l'email de réinitialisation.`, life: 5000 });
+  }
+};
+</script>
 
 <style scoped>
 /* Tes styles spécifiques ici */
 </style>
-

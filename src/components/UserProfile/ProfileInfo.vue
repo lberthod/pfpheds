@@ -1,5 +1,4 @@
 <template>
-  <Navbar />
   <div class="filter-menu">
     <div class="p-fluid p-pt-4 p-pb-4">
       <div class="surface-card p-4 shadow-2 border-round">
@@ -42,141 +41,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Profil de l'étudiant -->
-      <div v-if="currentStudent" class="p-card p-mb-4">
-        <h3>Profil de l'étudiant</h3>
-        <DataTable :value="[currentStudent]" class="p-datatable-gridlines">
-          <Column field="Nom" header="Nom"></Column>
-          <Column field="Prenom" header="Prénom"></Column>
-          <Column field="Classe" header="Classe"></Column>
-          <Column field="responsableDeStage" header="Responsable stage"></Column>
-          <Column field="Email" header="E-Mail"></Column>
-          <Column field="PFPinfo[selectedPFP]?.Remarque" header="Remarque"></Column>
-          <Column field="PFPinfo[selectedPFP]?.selectedStageName" header="Place Sélectionnée"></Column>
-        </DataTable>
-        <br>
-        <div class="p-mt-4">
-          <h4>Détails</h4>
-          <table class="p-table p-datatable-gridlines">
-            <thead>
-            <tr>
-              <th>Secteur</th>
-              <th>Statut</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr v-for="(value, key) in secteurDetails(currentStudent)" :key="key">
-              <td>{{ key }}</td>
-              <td>
-                <i v-if="value != '0'" class="pi pi-check-circle text-green-500"></i>
-                <i v-else class="pi pi-times-circle text-red-500"></i>
-              </td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Affichage amélioré pour PFP1_info -->
-        <div v-if="currentStudent.PFP1_info">
-          <h5>PFP1 Details:</h5>
-          <table class="p-table p-datatable-gridlines">
-            <tr>
-              <th>Nom</th>
-              <td>{{ currentStudent.PFP1_info.Nom }}</td>
-            </tr>
-            <tr>
-              <th>Lieu</th>
-              <td>{{ currentStudent.PFP1_info.Lieu }}</td>
-            </tr>
-            <tr>
-              <th>Langue</th>
-              <td>{{ currentStudent.PFP1_info.Langue }}</td>
-            </tr>
-            <tr>
-              <th>Secteurs</th>
-              <td>{{ getOtherSecteurs(currentStudent.PFP1_info) }}</td>
-            </tr>
-          </table>
-        </div>
-
-        <!-- Affichage pour PFP2_info -->
-        <div v-if="currentStudent.PFP2_info">
-          <h5>PFP2 Details:</h5>
-          <table class="p-table p-datatable-gridlines">
-            <tr>
-              <th>Nom</th>
-              <td>{{ currentStudent.PFP2_info.Nom }}</td>
-            </tr>
-            <tr>
-              <th>Lieu</th>
-              <td>{{ currentStudent.PFP2_info.Lieu }}</td>
-            </tr>
-            <tr>
-              <th>Langue</th>
-              <td>{{ currentStudent.PFP2_info.Langue }}</td>
-            </tr>
-            <tr>
-              <th>Secteurs</th>
-              <td>{{ getOtherSecteurs(currentStudent.PFP2_info) }}</td>
-            </tr>
-          </table>
-        </div>
-
-        <!-- Affichage pour PFP3_info -->
-        <div v-if="currentStudent.PFP3_info">
-          <h5>PFP3 Details:</h5>
-          <table class="p-table p-datatable-gridlines">
-            <tr>
-              <th>Nom</th>
-              <td>{{ currentStudent.PFP3_info.Nom }}</td>
-            </tr>
-            <tr>
-              <th>Lieu</th>
-              <td>{{ currentStudent.PFP3_info.Lieu }}</td>
-            </tr>
-            <tr>
-              <th>Langue</th>
-              <td>{{ currentStudent.PFP3_info.Langue }}</td>
-            </tr>
-            <tr>
-              <th>Secteurs</th>
-              <td>{{ getOtherSecteurs(currentStudent.PFP3_info) }}</td>
-            </tr>
-          </table>
-        </div>
-
-        <!-- Affichage pour PFP4_info -->
-        <div v-if="currentStudent.PFP4_info">
-          <h5>PFP4 Details:</h5>
-          <table class="p-table p-datatable-gridlines">
-            <tr>
-              <th>Nom</th>
-              <td>{{ currentStudent.PFP4_info.Nom }}</td>
-            </tr>
-            <tr>
-              <th>Lieu</th>
-              <td>{{ currentStudent.PFP4_info.Lieu }}</td>
-            </tr>
-            <tr>
-              <th>Langue</th>
-              <td>{{ currentStudent.PFP4_info.Langue }}</td>
-            </tr>
-            <tr>
-              <th>Secteurs</th>
-              <td>{{ getOtherSecteurs(currentStudent.PFP4_info) }}</td>
-            </tr>
-          </table>
-        </div>
-        <br> <br>
-        <div v-if="validationMessage" class="p-mt-4">
-          <h4>Validation</h4>
-          <p>{{ validationMessage }}</p>
-        </div>
-      </div>
-      <div class="p-d-flex p-jc-center p-mt-4">
-        <Button label="Retour" class="p-button-primary" @click="goBack" />
-      </div>
     </div>
   </div>
 </template>
@@ -185,7 +49,6 @@
 import { ref, onMounted } from 'vue';
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { getDatabase, ref as dbRef, get, set } from "firebase/database";
-import Navbar from '@/components/Utils/Navbar.vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';

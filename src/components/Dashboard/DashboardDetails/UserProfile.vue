@@ -7,64 +7,26 @@
             <p><strong>Nom :</strong> {{ userProfile.Nom }}</p>
             <p><strong>Prénom :</strong> {{ userProfile.Prenom }}</p>
             <p><strong>Classe :</strong> {{ userProfile.Classe }}</p>
-            <h5>Détails des critères : </h5>
-            <table class="details-table">
-              <thead>
-                <tr>
-                  <th>FR</th>
-                  <th>ALL</th>
-                  <th>AMBU</th>
-                  <th>MSQ</th>
-                  <th>SYSINT</th>
-                  <th>NEUROGER</th>
-                  <th>REHAB</th>
-                  <th>AIGU</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td :class="getClass(userProfile.FR)">{{ formatValue(userProfile.FR) }}</td>
-                  <td :class="getClass(userProfile.ALL)">{{ formatValue(userProfile.ALL) }}</td>
-                  <td :class="getClass(userProfile.AMBU)">{{ formatValue(userProfile.AMBU) }}</td>
-                  <td :class="getClass(userProfile.MSQ)">{{ formatValue(userProfile.MSQ) }}</td>
-                  <td :class="getClass(userProfile.SYSINT)">{{ formatValue(userProfile.SYSINT) }}</td>
-                  <td :class="getClass(userProfile.NEUROGER)">{{ formatValue(userProfile.NEUROGER) }}</td>
-                  <td :class="getClass(userProfile.REHAB)">{{ formatValue(userProfile.REHAB) }}</td>
-                  <td :class="getClass(userProfile.AIGU)">{{ formatValue(userProfile.AIGU) }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <h5>Détails des critères :</h5>
+            <DataTable :value="criteria" tableStyle="min-width: 50rem">
+              <Column v-for="col of criteriaColumns" :key="col.field" :field="col.field" :header="col.header"></Column>
+            </DataTable>
           </div>
           <div v-else>
             <p>Chargement des données du profil ...</p>
           </div>
         </div>
-        <!--
-         <div class="card">
+
+        <!-- DataTable pour les stages -->
+        <div class="card mt-4">
           <h5>Stages</h5>
-          <DataTable
-            :value="stages"
-            :paginator="false"
-            :rows="10"
-            dataKey="id"
-            :rowHover="true"
-            :loading="loading"
-            showGridlines
-          >
-            <template #header>
-              <div class="flex justify-content-between flex-column sm:flex-row">
-            
-              </div>
-            </template>
-            <template #empty> Pas de stages disponibles. </template>
-            <template #loading> Chargement des données des stages. Veuillez patienter. </template>
-            <Column field="Nom" header="Nom" style="min-width: 12rem"></Column>
-            <Column field="Lieu" header="Lieu" style="min-width: 12rem"></Column>
-            <Column field="Langue" header="Langue" style="min-width: 12rem"></Column>
-            <Column field="Secteur" header="Secteur" style="min-width: 12rem" :body="secteurTemplate"></Column>
+          <DataTable :value="stages" tableStyle="min-width: 50rem">
+            <Column field="Nom" header="Nom"></Column>
+            <Column field="Lieu" header="Lieu"></Column>
+            <Column field="Langue" header="Langue"></Column>
+            <Column field="Secteur" header="Secteur"></Column>
           </DataTable>
         </div>
-        -->
       </div>
     </div>
   </div>
@@ -74,14 +36,31 @@
 import { ref, onMounted } from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import InputText from 'primevue/inputtext';
 import { getDatabase, ref as dbRef, get } from "firebase/database";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const stages = ref([]);
 const userProfile = ref(null);
+const criteria = ref([]);
 const loading = ref(true);
-const globalFilter = ref('');
+
+const criteriaColumns = ref([
+  { field: 'FR', header: 'FR' },
+  { field: 'ALL', header: 'ALL' },
+  { field: 'AMBU', header: 'AMBU' },
+  { field: 'MSQ', header: 'MSQ' },
+  { field: 'SYSINT', header: 'SYSINT' },
+  { field: 'NEUROGER', header: 'NEUROGER' },
+  { field: 'REHAB', header: 'REHAB' },
+  { field: 'AIGU', header: 'AIGU' }
+]);
+
+const stagesColumns = ref([
+  { field: 'Nom', header: 'Nom' },
+  { field: 'Lieu', header: 'Lieu' },
+  { field: 'Langue', header: 'Langue' },
+  { field: 'Secteur', header: 'Secteur' }
+]);
 
 const fetchStages = async () => {
   const db = getDatabase();
@@ -99,29 +78,35 @@ const fetchStages = async () => {
 };
 
 const fetchUserProfile = async (email) => {
-  console.log("mail 1");
-
   const db = getDatabase();
   const studentsRef = dbRef(db, 'students');
   const snapshot = await get(studentsRef);
-  console.log("mail 1");
 
   if (snapshot.exists()) {
     const studentsData = snapshot.val();
-    console.log("mail 1");
     for (const classKey in studentsData) {
       for (const studentKey in studentsData[classKey]) {
         const student = studentsData[classKey][studentKey];
-        console.log("mail" + student.Mail);
-        console.log( "email " + email.toLowerCase());
-
         if (student.Mail && student.Mail.toLowerCase() === email.toLowerCase()) {
           userProfile.value = {
             id: studentKey,
             Classe: classKey,
             ...student
           };
-          // Ajouter les informations de PFP1_info et PFP2_info dans stages
+
+          criteria.value = [
+            {
+              FR: student.FR,
+              ALL: student.ALL,
+              AMBU: student.AMBU,
+              MSQ: student.MSQ,
+              SYSINT: student.SYSINT,
+              NEUROGER: student.NEUROGER,
+              REHAB: student.REHAB,
+              AIGU: student.AIGU
+            }
+          ];
+
           if (student.PFP1_info) {
             stages.value.push({
               id: `PFP1-${studentKey}`,
@@ -156,16 +141,19 @@ const getSecteurs = (info) => {
   return secteurs.join(', ');
 };
 
-const secteurTemplate = (rowData) => {
-  return rowData.Secteur;
-};
+const criteriaTemplate = (rowData) => {
+  const validCriteria = [];
 
-const getClass = (value) => {
-  return value >= 1 ? 'text-green-500' : 'text-red-500';
-};
+  if (rowData.FR === '1') validCriteria.push('FR');
+  if (rowData.ALL === '1') validCriteria.push('ALL');
+  if (rowData.AIGU) validCriteria.push('AIGU');
+  if (rowData.REHAB) validCriteria.push('REHAB');
+  if (rowData.MSQ) validCriteria.push('MSQ');
+  if (rowData.SYSINT) validCriteria.push('SYSINT');
+  if (rowData.NEUROGER) validCriteria.push('NEUROGER');
+  if (rowData.AMBU) validCriteria.push('AMBU');
 
-const formatValue = (value) => {
-  return value >= 1 ? `✔️ ${value}` : `❌ ${value}`;
+  return validCriteria.join(', ');
 };
 
 onMounted(async () => {
@@ -183,30 +171,11 @@ onMounted(async () => {
 
 <style scoped>
 .details-table {
-  width: 100%;
-  border-collapse: collapse;
   margin-top: 1rem;
+  width: 100%;
 }
 
-.details-table th,
-.details-table td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
-}
-
-.details-table th {
-  background-color: #f4f4f4;
-  font-weight: bold;
-}
-
-.text-green-500 {
-  color: green;
-  font-weight: bold;
-}
-
-.text-red-500 {
-  color: red;
-  font-weight: bold;
+.mt-4 {
+  margin-top: 1.5rem;
 }
 </style>

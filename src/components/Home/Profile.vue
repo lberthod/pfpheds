@@ -26,10 +26,6 @@
           <a class="cursor-pointer block lg:hidden text-700 mr-3 mt-1" @click="toggleSidebar">
             <i class="pi pi-bars text-4xl"></i>
           </a>
-          <span class="p-input-icon-left">
-            <i class="pi pi-search"></i>
-            <InputText type="search" class="border-none" placeholder="Search" />
-          </span>
         </div>
         <a class="cursor-pointer block lg:hidden text-700" @click="toggleTopMenu">
           <i class="pi pi-ellipsis-v text-2xl"></i>
@@ -106,7 +102,8 @@ export default {
       photoURL: '',
       uid: '',
       ville: '',
-      canton: ''
+      canton: '',
+      userAvatar: ''
     });
 
     const logo = '../../../public/assets/images/hespicto.png';
