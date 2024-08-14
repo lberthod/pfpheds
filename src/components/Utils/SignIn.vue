@@ -62,7 +62,7 @@ const auth = getAuth();
 const submitForm = async () => {
   try {
     await signInWithEmailAndPassword(auth, email.value, password.value);
-    router.push('/votation');
+    router.push('votation');
   } catch (error) {
     console.error("Erreur de connexion: ", error.message);
   }

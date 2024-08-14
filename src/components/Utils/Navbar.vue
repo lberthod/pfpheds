@@ -17,6 +17,11 @@
                 <Button type="button" label="Se Connecter" class="m-0"></Button>
               </a>
             </li>
+
+            <li v-if="user" class="mx-2">
+              <a @click="navigateTo('/institution')" class="flex m-0 px-0 py-3 text-900 font-medium line-height-3">Institutions</a>
+            </li>
+
             <li v-if="user" class="mx-2">
               <a @click="navigateTo('/votation')" class="flex m-0 px-0 py-3 text-900 font-medium line-height-3">Votation</a>
             </li>
