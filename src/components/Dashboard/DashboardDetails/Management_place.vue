@@ -15,7 +15,6 @@
           <thead>
             <tr>
               <th scope="col" class="border-0">Nom</th>
-
               <th scope="col" class="border-0">NomPlace</th>
               <th scope="col" class="border-0">MSQ</th>
               <th scope="col" class="border-0">SYSINT</th>
@@ -37,6 +36,7 @@
               <th scope="col" class="border-0">Categorie</th>
               <th scope="col" class="border-0">Convention</th>
               <th scope="col" class="border-0">Lieu</th>
+              <th scope="col" class="border-0">Praticien Formateur</th> <!-- New Column -->
               <th scope="col" class="border-0 rounded-end">Remarques</th>
               <th scope="col" class="border-0 rounded-end">Action</th>
             </tr>
@@ -44,7 +44,6 @@
           <tbody>
             <tr v-for="place in filteredPlaces" :key="place.IdPlace">
               <td>{{ place.Name }}</td>
-
               <td><input v-model="place.NomPlace" @change="updatePlace(place, 'NomPlace', place.NomPlace)" class="form-control"></td>
               <td><input type="checkbox" v-model="place.MSQ" @change="updatePlace(place, 'MSQ', place.MSQ)"></td>
               <td><input type="checkbox" v-model="place.SYSINT" @change="updatePlace(place, 'SYSINT', place.SYSINT)"></td>
@@ -64,9 +63,13 @@
               <td>{{ place.AccordCadre }}</td>
               <td>{{ place.Canton }}</td>
               <td>{{ place.Categorie }}</td>
-          
               <td>{{ place.Convention }}</td>
               <td>{{ place.Lieu }}</td>
+              <td>
+                <select multiple v-model="place.selectedPraticiensFormateurs" @change="updatePraticiensFormateurs(place, place.selectedPraticiensFormateurs)" class="form-control">
+                  <option v-for="(praticien, id) in praticiensFormateurs" :key="id" :value="id">{{ praticien }}</option>
+                </select>
+              </td> <!-- Praticien Formateur -->
               <td><input type="text" v-model="place.Remarques" @change="updatePlace(place, 'Remarques', place.Remarques)" class="form-control"></td>
               <td>
                 <button class="btn btn-sm btn-warning me-1" @click="editPlace(place)">Modifier</button>
@@ -97,6 +100,7 @@ export default {
   data() {
     return {
       places: [],
+      praticiensFormateurs: {}, // Store fetched praticiensFormateurs as an object with keys as IDs
       search: ''
     };
   },
@@ -124,7 +128,7 @@ export default {
             const place = placesData[key];
             const institutionData = await this.fetchInstitutionData(place.IDPlace);
             return {
-              IdPlace: place.IDPlace,
+              IdPlace: key,
               NomPlace: place.NomPlace || '',
               MSQ: place.MSQ || false,
               SYSINT: place.SYSINT || false,
@@ -147,12 +151,24 @@ export default {
               Categorie: institutionData.Categorie || '',
               Convention: institutionData.Convention || '',
               Lieu: institutionData.Lieu || '',
-              Remarques: place.Remarques || ''
+              Remarques: place.Remarques || '',
+              selectedPraticiensFormateurs: place.praticiensFormateurs || [] // Store selected praticien formateurs IDs as an array
             };
           });
 
           this.places = await Promise.all(placePromises);
         }
+      });
+    },
+
+    async fetchPraticiensFormateursData() {
+      const praticiensRef = ref(db, 'praticiensFormateurs');
+      onValue(praticiensRef, (snapshot) => {
+        const praticiensData = snapshot.val() || {};
+        this.praticiensFormateurs = Object.keys(praticiensData).reduce((acc, key) => {
+          acc[key] = `${praticiensData[key].Prenom} ${praticiensData[key].Nom}`;
+          return acc;
+        }, {}); // Store praticiens as an object with IDs as keys and names as values
       });
     },
 
@@ -168,6 +184,11 @@ export default {
     async updatePlace(place, field, value) {
       const placeRef = ref(db, `places/${place.IdPlace}`);
       await update(placeRef, { [field]: value });
+    },
+
+    async updatePraticiensFormateurs(place, praticiensIds) {
+      const placeRef = ref(db, `places/${place.IdPlace}`);
+      await update(placeRef, { praticiensFormateurs: praticiensIds });
     },
 
     editPlace(place) {
@@ -188,6 +209,7 @@ export default {
     }
   },
   async mounted() {
+    await this.fetchPraticiensFormateursData();
     this.fetchPlacesData();
   }
 };
