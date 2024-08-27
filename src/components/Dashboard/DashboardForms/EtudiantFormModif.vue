@@ -1,29 +1,41 @@
 <template>
   <div class="surface-section px-4 py-8 md:px-6 lg:px-8">
     <div class="text-center">
-      <h1 class="text-5xl font-bold mb-4">Modifier les étudiants</h1>
+      <h1 class="text-5xl font-bold mb-4">Modifier l'étudiant</h1>
     </div>
     <form @submit.prevent="updateEtudiant" class="p-fluid grid">
       <div class="field mb-4 col-6">
         <label for="prenom" class="block text-xl mb-2">Prénom</label>
-        <InputText id="prenom" v-model="prenom" required class="w-full" />
+        <InputText id="prenom" v-model="etudiant.Prenom" required class="w-full" />
       </div>
       <div class="field mb-4 col-6">
         <label for="nom" class="block text-xl mb-2">Nom</label>
-        <InputText id="nom" v-model="nom" required class="w-full" />
+        <InputText id="nom" v-model="etudiant.Nom" required class="w-full" />
       </div>
       <div class="field mb-4 col-6">
         <label for="classe" class="block text-xl mb-2">Classe</label>
-        <InputText id="classe" v-model="classe" class="w-full" />
+        <InputText id="classe" v-model="etudiant.Classe" class="w-full" />
       </div>
       <div class="field mb-4 col-6">
         <label for="email" class="block text-xl mb-2">Email</label>
-        <InputText id="email" v-model="email" required type="email" class="w-full" />
+        <InputText id="email" v-model="etudiant.Mail" required type="email" class="w-full" />
       </div>
+
+      <!-- Dropdown for PFP1 -->
       <div class="field mb-4 col-6">
-        <label for="responsable" class="block text-xl mb-2">Responsable de stage</label>
-        <Dropdown id="responsable" v-model="responsable" :options="enseignants" optionLabel="Nom" placeholder="Sélectionner un responsable" class="w-full" />
+        <label for="pfp1" class="block text-xl mb-2">PFP1 - Institution</label>
+        <Dropdown
+          id="pfp1"
+          v-model="selectedPFP1"
+          :options="institutionOptions"
+          optionLabel="institutionName"
+          optionValue="institutionKey"
+          class="w-full"
+          placeholder="Sélectionner une institution pour PFP1"
+          @change="updatePFP1Info"
+        />
       </div>
+
       <div class="text-center mt-5 col-12">
         <Button type="submit" label="Mettre à jour" class="p-button-primary w-full lg:w-auto" />
       </div>
@@ -32,18 +44,18 @@
 </template>
 
 <script>
-import { db } from '../../../../firebase.js';
-import { ref, get, set } from "firebase/database";
+import { ref, onMounted } from 'vue';
+import { getDatabase, ref as dbRef, get, set } from "firebase/database";
 import InputText from 'primevue/inputtext';
-import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
+import Button from 'primevue/button';
 
 export default {
   name: 'EtudiantFormModif',
   components: {
     InputText,
-    Button,
-    Dropdown
+    Dropdown,
+    Button
   },
   props: {
     etuId: {
@@ -53,72 +65,105 @@ export default {
   },
   data() {
     return {
-      prenom: '',
-      nom: '',
-      classe: '',
-      email: '',
-      responsable: null,
-      enseignants: []
+      etudiant: {
+        Prenom: '',
+        Nom: '',
+        Classe: '',
+        Mail: '',
+        PFP1_info: { institutionId: '', institutionName: '' }, // Stocke la clé de l'institution et son nom
+      },
+      selectedPFP1: '', // Contient la clé de l'institution sélectionnée
+      institutionOptions: [],
     };
   },
-  async mounted() {
-    if (this.etuId) {
-      await this.fetchEnseignants();
-      await this.fetchEtudiantDetails();
-    } else {
-      console.error('Aucun ID d’étudiant fourni');
-    }
+  mounted() {
+    this.fetchEtudiantDetails();
+    this.fetchInstitutionOptions();
   },
   methods: {
-    async fetchEnseignants() {
-      try {
-        const enseignantsRef = ref(db, 'enseignants/');
-        const snapshot = await get(enseignantsRef);
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          this.enseignants = Object.keys(data).map(key => ({
-            ...data[key],
-            id: key
-          }));
-        }
-      } catch (error) {
-        console.error('Erreur de chargement des enseignants', error);
-      }
-    },
     async fetchEtudiantDetails() {
       try {
-        const etudiantRef = ref(db, 'etudiants/' + this.etuId);
-        const snapshot = await get(etudiantRef);
+        const db = getDatabase();
+        const studentsRef = dbRef(db, 'students');
+        const snapshot = await get(studentsRef);
         if (snapshot.exists()) {
-          const etudiantData = snapshot.val();
-          this.prenom = etudiantData.Prenom || '';
-          this.nom = etudiantData.Nom || '';
-          this.classe = etudiantData.Classe || '';
-          this.email = etudiantData.Email || '';
-          this.responsable = etudiantData.Responsable || null;
+          const studentsData = snapshot.val();
+          // Parcourir chaque classe et rechercher l'étudiant par ID
+          for (const classKey in studentsData) {
+            if (studentsData[classKey][this.etuId]) {
+              const studentData = studentsData[classKey][this.etuId];
+              this.etudiant = { ...studentData, Classe: classKey };
+
+              // Pré-remplir la clé de l'institution pour PFP1
+              this.selectedPFP1 = studentData.PFP1_info?.institutionId || '';
+
+              console.log("Données de l'étudiant récupérées : ", this.etudiant);
+              break;
+            }
+          }
         } else {
-          console.error('Etudiant non trouvé');
+          console.error('Aucun étudiant trouvé');
         }
       } catch (error) {
-        console.error('Erreur de chargement des données de l’étudiant', error);
+        console.error('Erreur lors du chargement des données de l\'étudiant', error);
+      }
+    },
+    async fetchInstitutionOptions() {
+      try {
+        const db = getDatabase();
+        const placesRef = dbRef(db, 'places');
+        const institutionsRef = dbRef(db, 'institutions');
+
+        const [placesSnapshot, institutionsSnapshot] = await Promise.all([
+          get(placesRef),
+          get(institutionsRef)
+        ]);
+
+        if (placesSnapshot.exists() && institutionsSnapshot.exists()) {
+          const places = placesSnapshot.val();
+          const institutions = institutionsSnapshot.val();
+
+          // Mapper les clés des institutions avec leurs ID de places
+          this.institutionOptions = Object.keys(places).map(placeKey => {
+            const institutionKey = places[placeKey].IDPlace;
+            const institutionName = institutions[institutionKey]?.Name || institutionKey;
+            return {
+              institutionKey, // Clé de l'institution
+              institutionName, // Nom de l'institution
+            };
+          });
+
+          console.log("Options d'institutions récupérées : ", this.institutionOptions);
+        } else {
+          console.error('Aucune place de stage ou institution trouvée');
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des options d\'institutions', error);
+      }
+    },
+    updatePFP1Info() {
+      // Met à jour la clé et le nom de l'institution dans etudiant.PFP1_info
+      const selectedInstitution = this.institutionOptions.find(option => option.institutionKey === this.selectedPFP1);
+      if (selectedInstitution) {
+        this.etudiant.PFP1_info = {
+          institutionId: selectedInstitution.institutionKey,
+          institutionName: selectedInstitution.institutionName
+        };
       }
     },
     async updateEtudiant() {
       if (confirm('Êtes-vous sûr de vouloir mettre à jour cet étudiant ?')) {
         try {
-          const etudiantRef = ref(db, 'etudiants/' + this.etuId);
-          await set(etudiantRef, {
-            Prenom: this.prenom,
-            Nom: this.nom,
-            Classe: this.classe,
-            Email: this.email,
-            Responsable: this.responsable
-          });
+          const db = getDatabase();
+          const etudiantRef = dbRef(db, `students/${this.etudiant.Classe}/${this.etuId}`);
 
-          // Rediriger vers la liste des étudiants
+          // Mettre à jour les informations PFP1 dans l'enregistrement de l'étudiant
+          await set(etudiantRef, this.etudiant);
+
+          alert('Données mises à jour avec succès');
           this.$router.push({ name: 'EtudiantList' });
         } catch (error) {
-          console.error('Erreur de mise à jour de l’étudiant', error);
+          console.error('Erreur lors de la mise à jour de l\'étudiant', error);
         }
       }
     }
@@ -127,5 +172,5 @@ export default {
 </script>
 
 <style scoped>
-/* Add your custom styles here */
+/* Ajoutez vos styles personnalisés ici */
 </style>

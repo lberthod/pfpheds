@@ -9,10 +9,12 @@
             <p><strong>Prénom :</strong> {{ userProfile.Prenom }}</p>
             <p><strong>Classe :</strong> {{ userProfile.Classe }}</p>
             <p><strong>E-Mail :</strong> {{ userProfile.Mail }}</p>
+            <p><strong>Répondant.e HES :</strong> {{ userProfile.ReponsantHES }}</p>
+            <p><strong>Remarque :</strong> {{ userProfile.Remarque }}</p>
             <h5>Détails</h5>
             <DataTable :value="[userProfile]" tableStyle="min-width: 50rem">
-              <Column field="FR" header="FR" :body="formatColumn('FR')"></Column>
-              <Column field="ALL" header="ALL" :body="formatColumn('ALL')"></Column>
+              <Column field="fr" header="FR" :body="formatColumn('FR')"></Column>
+              <Column field="all" header="ALL" :body="formatColumn('ALL')"></Column>
               <Column field="AMBU" header="AMBU" :body="formatColumn('AMBU')"></Column>
               <Column field="AIGU" header="AIGU" :body="formatColumn('AIGU')"></Column>
               <Column field="MSQ" header="MSQ" :body="formatColumn('MSQ')"></Column>
@@ -26,9 +28,9 @@
           </div>
         </div>
 
-        <!-- Ajouter le tableau des stages ici -->
-        <div class="card">
-          <h5>Stages</h5>
+        <!-- Tableau unique pour les stages -->
+        <div class="card mt-4">
+          <h5>Stages Précédents</h5>
           <DataTable
             :value="stages"
             :paginator="true"
@@ -39,16 +41,9 @@
             showGridlines
             tableStyle="min-width: 50rem"
           >
-            <template #header>
-              <div class="flex justify-content-between flex-column sm:flex-row">
-                <span class="p-input-icon-left">
-                  <InputText v-model="globalFilter" placeholder="Recherche" style="width: 100%"/>
-                </span>
-              </div>
-            </template>
             <template #empty> Pas de stages disponibles. </template>
             <template #loading> Chargement des données des stages. Veuillez patienter. </template>
-            <Column field="Nom" header="Nom" style="min-width: 12rem"></Column>
+            <Column field="NomPlace" header="Institution" style="min-width: 12rem"></Column>
             <Column field="Lieu" header="Lieu" style="min-width: 12rem"></Column>
             <Column field="Langue" header="Langue" style="min-width: 12rem"></Column>
             <Column field="Secteur" header="Secteur" style="min-width: 12rem" :body="secteurTemplate"></Column>
@@ -72,23 +67,6 @@ const userProfile = ref(null);
 const loading = ref(true);
 const globalFilter = ref('');
 
-const fetchStages = async () => {
-  const db = getDatabase();
-  const stagesRef = dbRef(db, 'stages');
-  const snapshot = await get(stagesRef);
-  if (snapshot.exists()) {
-    stages.value = Object.keys(snapshot.val()).map(key => ({
-      id: key,
-      ...snapshot.val()[key]
-    }));
-    console.log('Stages fetched:', stages.value);
-  } else {
-    stages.value = [];
-    console.log('No stages found');
-  }
-  loading.value = false;
-};
-
 const fetchUserProfile = async (email) => {
   const db = getDatabase();
   const studentsRef = dbRef(db, 'students');
@@ -104,30 +82,31 @@ const fetchUserProfile = async (email) => {
             Classe: classKey,
             ...student
           };
-          console.log('User profile fetched:', userProfile.value);
-          addPFPInfoToStages(student, studentKey);
+          console.log('Profil utilisateur récupéré :', userProfile.value);
+          addAllPFPInfoToStages(student, studentKey);
           return;
         }
       }
     }
   }
   userProfile.value = null;
-  console.log('User profile not found');
+  console.log('Profil utilisateur non trouvé');
 };
 
-const addPFPInfoToStages = (student, studentKey) => {
+const addAllPFPInfoToStages = (student, studentKey) => {
   const pfpInfos = ['PFP1_info', 'PFP2_info', 'PFP3_info', 'PFP4_info'];
   pfpInfos.forEach((pfp) => {
     if (student[pfp]) {
       stages.value.push({
         id: `${pfp}-${studentKey}`,
-        ...student[pfp],
+        NomPlace: pfp + ": " + (student[pfp].NomPlace || 'N/A'),  // Associer le nom du PFP au nom de l'institution
+        Lieu: student[pfp].Lieu || 'N/A',
+        Langue: student[pfp].Langue || 'N/A',
         Secteur: getSecteurs(student[pfp])
       });
-      console.log(`Added ${pfp} to stages`, student[pfp]);
     }
   });
-  console.log('Stages after adding PFP info:', stages.value);
+  console.log('Stages après ajout des infos PFP :', stages.value);
 };
 
 const getSecteurs = (info) => {
@@ -137,7 +116,7 @@ const getSecteurs = (info) => {
   if (info.AIGU === 1) secteurs.push('AIGU');
   if (info.MSQ === 1) secteurs.push('MSQ');
   if (info.SYSINT === 1) secteurs.push('SYSINT');
-  // Ajoutez ici d'autres secteurs si nécessaire
+  if (info.AMBU === 1) secteurs.push('AMBU');
   return secteurs.join(', ');
 };
 
@@ -165,9 +144,10 @@ onMounted(async () => {
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       await fetchUserProfile(user.email);
-      await fetchStages();
+      loading.value = false;
     } else {
       userProfile.value = null;
+      loading.value = false;
     }
   });
 });
