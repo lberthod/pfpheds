@@ -20,15 +20,17 @@
                 <InputText id="name" v-model="institution.Name" />
               </div>
             </div>
+
+            <!-- PDF upload section for Cyberlearn -->
             <div class="col-12 md:col-6">
               <div class="p-field">
-                <label for="cyberlearn">Cyberlearn</label>
-                <InputGroup>
-                  <InputGroupAddon>www</InputGroupAddon>
-                  <InputText id="cyberlearn" v-model="institution.Cyberlearn" />
-                </InputGroup>
+                <label for="cyberlearn">Cyberlearn PDF</label>
+
+                <FileUpload mode="basic" @select="onPdfChange" customUpload auto severity="secondary" class="p-button-outlined" />
+                <p v-if="institution.CyberlearnURL" class="mt-2">PDF actuel : <a :href="institution.CyberlearnURL" target="_blank">Voir le PDF</a></p>
               </div>
             </div>
+
             <div class="col-12 md:col-4">
               <div class="p-field">
                 <label for="lieu">Lieu</label>
@@ -77,8 +79,8 @@
               <div class="text-center">
                 <div class="border-2 border-dashed surface-border rounded-lg p-5 mb-3">
                   <i class="pi pi-image text-5xl"></i>
-                  <h6 class="mt-2">Téléchargez l'image de l'institution ici, ou <a href="#!" class="text-primary" @click="triggerFileInput">Parcourir</a></h6>
-                  <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFileChange" />
+                  <h6 class="mt-2">Téléchargez l'image de l'institution ici, ou <a href="#!" class="text-primary" @click="triggerImageInput">Parcourir</a></h6>
+                  <input ref="imageInput" type="file" accept="image/*" class="hidden" @change="onImageChange" />
                   <p class="mt-2">Seulement JPG, JPEG et PNG. Dimensions suggérées: 600px * 450px.</p>
                 </div>
                 <div v-if="institution.ImageURL" class="image-preview">
@@ -271,7 +273,7 @@ export default {
   data() {
     return {
       institution: {
-        Cyberlearn: '',
+        CyberlearnURL: '', // URL du PDF Cyberlearn
         Name: '',
         Lieu: '',
         Canton: '',
@@ -308,6 +310,7 @@ export default {
         active: true,
         idInstitution: '',
       },
+      pdfFile: null, // Pour stocker le fichier PDF sélectionné
       imageFile: null, // Pour stocker l'image sélectionnée
       showStageForm: false,
       cantons: [
@@ -382,7 +385,16 @@ export default {
       try {
         const instRef = ref(db, 'institutions/' + this.$route.params.id);
 
-        // Si une image a été sélectionnée, upload l'image
+        // Si un PDF a été sélectionné, upload du fichier PDF
+        if (this.pdfFile) {
+          const storage = getStorage();
+          const pdfRef = storageRef(storage, `institutions/${this.$route.params.id}/cyberlearn.pdf`);
+          await uploadBytes(pdfRef, this.pdfFile);
+          const pdfURL = await getDownloadURL(pdfRef);
+          this.institution.CyberlearnURL = pdfURL;
+        }
+
+        // Si une image a été sélectionnée, upload de l'image
         if (this.imageFile) {
           const storage = getStorage();
           const imageRef = storageRef(storage, `institutions/${this.$route.params.id}/image`);
@@ -407,7 +419,16 @@ export default {
       try {
         const instRef = ref(db, 'institutions/' + this.$route.params.id);
 
-        // Si une image a été sélectionnée, upload l'image
+        // Si un PDF a été sélectionné, upload du fichier PDF
+        if (this.pdfFile) {
+          const storage = getStorage();
+          const pdfRef = storageRef(storage, `institutions/${this.$route.params.id}/cyberlearn.pdf`);
+          await uploadBytes(pdfRef, this.pdfFile);
+          const pdfURL = await getDownloadURL(pdfRef);
+          this.institution.CyberlearnURL = pdfURL;
+        }
+
+        // Si une image a été sélectionnée, upload de l'image
         if (this.imageFile) {
           const storage = getStorage();
           const imageRef = storageRef(storage, `institutions/${this.$route.params.id}/image`);
@@ -463,7 +484,13 @@ export default {
     validateFormData() {
       return true; // Ajoutez votre logique de validation ici
     },
-    onFileChange(event) {
+    onPdfChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.pdfFile = file;
+      }
+    },
+    onImageChange(event) {
       const file = event.target.files[0];
       if (file) {
         this.imageFile = file;
@@ -506,8 +533,8 @@ export default {
         }
       });
     },
-    triggerFileInput() {
-      this.$refs.fileInput.click();
+    triggerImageInput() {
+      this.$refs.imageInput.click();
     },
     goBack() {
       this.$router.go(-1);
@@ -556,5 +583,3 @@ export default {
   border-radius: 8px;
 }
 </style>
-
-

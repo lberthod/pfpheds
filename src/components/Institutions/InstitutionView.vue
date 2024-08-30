@@ -41,6 +41,7 @@
                   <p class="card-text"><i class="bi bi-globe"></i> <strong>Canton:</strong> {{ institutionDetails ? institutionDetails.Canton : '' }}</p>
                   <p class="card-text"><i class="bi bi-geo-alt-fill"></i> <strong>Adresse:</strong> {{ institutionDetails ? institutionDetails.Street : '' }}</p>
                   <p class="card-text"><i class="bi bi-geo-alt-fill"></i> <strong>Lieu:</strong> {{ institutionDetails ? institutionDetails.Lieu : '' }}</p>
+                  <p class="card-text"><i class="bi bi-geo-alt-fill"></i> <strong>Site Web:</strong> {{ institutionDetails ? institutionDetails.URL : '' }}</p>
                 </div>
               </div>
             </div>
@@ -58,24 +59,6 @@
                   </div>
                   <div v-else>
                     <p class="card-text">Aucun praticien.ne formateur.trice.s disponible.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabPanel>
-          <TabPanel header="Places de stage">
-            <div class="grid">
-              <div class="col-12 lg:col-12">
-                <div class="text-900 font-bold text-3xl mb-4 mt-2">Places disponibles</div>
-                <div class="list-none p-0 m-0 text-600 mb-4 text-600">
-                  <div v-if="institutionDetails && institutionDetails.PraticiensFormateurs && institutionDetails.PraticiensFormateurs.length">
-                    <div v-for="(praticien, index) in institutionDetails.PraticiensFormateurs" :key="index">
-                      <p class="card-text"><i class="bi bi-person-badge-fill"></i> <strong>Nom Praticien.ne.s Formateur.trice.s:</strong> {{ praticien.Prenom }} {{ praticien.Nom }}</p>
-                      <p class="card-text"><i class="bi bi-envelope-fill"></i> <strong>Email Praticien Formateur:</strong> {{ praticien.Mail }}</p>
-                    </div>
-                  </div>
-                  <div v-else>
-                    <p class="card-text">Aucune place disponible pour le moment ...</p>
                   </div>
                 </div>
               </div>
