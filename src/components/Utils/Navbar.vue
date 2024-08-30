@@ -28,7 +28,8 @@
             <li v-if="user" class="mx-2">
               <a @click="navigateTo('/profile')" class="flex m-0 px-0 py-3 text-900 font-medium line-height-3">Profil</a>
             </li>
-            <li v-if="user" class="mx-2">
+            <!-- Update: Show 'Admin' link only if the user has the required role -->
+            <li v-if="user && hasAdminAccess" class="mx-2">
               <a @click="navigateTo('/admin')" class="flex m-0 px-0 py-3 text-900 font-medium line-height-3">Admin</a>
             </li>
             <li v-if="user" class="mx-2">
@@ -47,19 +48,40 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import { ref as dbRef, get as dbGet } from "firebase/database"; // Import necessary functions from Firebase
+import { db } from '../../../firebase.js'; // Adjust the import path based on your project structure
 
 const router = useRouter();
 const user = ref(null);
 const isHidden = ref(true);
+const userRoles = ref(null); // New reactive variable to store user roles
+const hasAdminAccess = ref(false); // New reactive variable to check for admin access
 
 const navigateTo = (path) => {
   router.push(path);
 };
 
 const auth = getAuth();
-onAuthStateChanged(auth, (u) => {
+onAuthStateChanged(auth, async (u) => {
   user.value = u;
   isHidden.value = !u; // Masquer le menu si l'utilisateur n'est pas connecté
+
+  if (u) {
+    const userId = u.uid;
+    try {
+      // Fetch user roles from Firebase Realtime Database
+      const rolesRef = dbRef(db, `users/${userId}/roles`);
+      const snapshot = await dbGet(rolesRef);
+      userRoles.value = snapshot.val();
+
+      // Check if the user has 'admin', 'editor', or 'viewer' role
+      if (userRoles.value) {
+        hasAdminAccess.value = userRoles.value.admin || userRoles.value.editor || userRoles.value.viewer;
+      }
+    } catch (error) {
+      console.error('Error fetching user roles:', error);
+    }
+  }
 });
 
 const logout = async () => {
@@ -71,6 +93,7 @@ const logout = async () => {
   }
 };
 </script>
+
 
 <style scoped>
 .bg-primary {

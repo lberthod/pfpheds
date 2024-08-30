@@ -3,7 +3,6 @@
     <Navbar />
     <UserProfile />
     <div class="container-fluid mt-4">
-
       <div v-if="currentStudent && selectedPFP && selectedClass" class="table-responsive mt-4">
         <div v-if="validationMessage" class="mt-4 text-center">
           <h4>Validation</h4>
@@ -18,14 +17,14 @@
               <tr>
                 <th>Institutions</th>
                 <th>Lieux</th>
-                <th>Secteurs</th>
+                <th>Domaine</th>
                 <th>FR</th>
                 <th>ALL</th>
                 <th>AIGU</th>
                 <th>REHAB</th>
                 <th>MSQ</th>
                 <th>SYSINT</th>
-                <th>Neuroger</th>
+                <th>NEUROGER</th>
                 <th>AMBU</th>
                 <th>Choisir</th>
               </tr>
@@ -35,21 +34,21 @@
                 <td>{{ stage.NomPlace }}</td>
                 <td>{{ stage.Lieu }}</td>
                 <td>{{ stage.Domaine }}</td>
-                <td v-if="stage.FR == '1'">&#9989;</td>
+                <td v-if="Boolean(stage.FR) == true">&#9989;</td>
                 <td v-else>&#10060;</td>
-                <td v-if="stage.ALL == '1'">&#9989;</td>
+                <td v-if="Boolean(stage.DE) == true">&#9989;</td>
                 <td v-else>&#10060;</td>
-                <td v-if="stage.AIGU != ''">&#9989;</td>
+                <td v-if="Boolean(stage.AIGU) == true">&#9989;</td>
                 <td v-else>&#10060;</td>
-                <td v-if="stage.REHAB != ''">&#9989;</td>
+                <td v-if="Boolean(stage.REHAB)== true">&#9989;</td>
                 <td v-else>&#10060;</td>
-                <td v-if="stage.MSQ != ''">&#9989;</td>
+                <td v-if="Boolean(stage.MSQ) == true">&#9989; </td>
+                <td v-else>&#10060; </td>
+                <td v-if="Boolean(stage.SYSINT) == true">&#9989; </td>
                 <td v-else>&#10060;</td>
-                <td v-if="stage.SYSINT != ''">&#9989;</td>
+                <td v-if="Boolean(stage.NEUROGER) == true">&#9989;</td>
                 <td v-else>&#10060;</td>
-                <td v-if="stage.NEUROGER != ''">&#9989;</td>
-                <td v-else>&#10060;</td>
-                <td v-if="stage.AMBU != ''">&#9989;</td>
+                <td v-if="Boolean(stage.AMBU) == true">&#9989;</td>
                 <td v-else>&#10060;</td>
                 <td>
                   <input type="radio" :name="'stage-selection'" @change="selectStage(stage)">
@@ -62,7 +61,7 @@
 
       <!-- Section to display voting result -->
       <div v-if="voteResult" class="mt-4 text-center">
-        <h4>Choix du   Vote</h4>
+        <h4>Choix du Vote</h4>
         <p>Stage Sélectionné : {{ voteResult.selectedStageName }}</p>
         <p>Lieu : {{ voteResult.selectedStageLieu }}</p>
         <p>Domaine : {{ voteResult.selectedStageDomaine }}</p>
@@ -75,12 +74,13 @@
     </div>
   </div>
 </template>
+
 <script>
 import { db, auth } from '../../../../firebase.js';
 import { ref, onValue, set, get } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from '@/components/Utils/Navbar.vue';
-import UserProfile from './UserProfile.vue'
+import UserProfile from './UserProfile.vue';
 
 export default {
   name: "VotationLese",
@@ -92,7 +92,6 @@ export default {
     return {
       etudiants: [],
       selectedClass: 'BA22',
-      search: '',
       selectedPFP: 'PFP4',
       stages: [],
       selectedStage: null,
@@ -103,26 +102,22 @@ export default {
       languageIssue: null,
       pfp1: [],
       pfp2: [],
-      voteResult: null, // Added data property to store vote result
+      voteResult: null,
+      takenStages: new Set() // Track stages already selected by other students
     };
   },
   computed: {
     filteredStages() {
+      // Filter to show only available stages not taken by other students
       return this.stages.filter(stage => this.isStageVisible(stage));
     }
   },
-
   methods: {
     async submitVotes() {
-      console.log("start");
       if (this.selectedStage && this.currentStudent) {
         const { id } = this.currentStudent;
         if (id) {
           const votationRef = ref(db, `votation_lese/${id}`);
-
-          console.log("Selected Stage:", this.selectedStage);
-          console.log("Current Student:", this.currentStudent);
-          console.log("Submitting votes..." + id);
           const votationData = {
             studentId: id,
             studentName: this.currentStudent.Nom,
@@ -143,10 +138,7 @@ export default {
           };
 
           await set(votationRef, votationData);
-          console.log("Votes enregistrés avec succès!");
-
-          // Update voteResult data property
-          this.voteResult = votationData;
+          this.voteResult = votationData; // Update voteResult data property
         } else {
           alert("Erreur: Informations de l'étudiant manquantes.");
         }
@@ -174,22 +166,74 @@ export default {
         }
       });
     },
+
     async fetchStagesData() {
-      const dbRef = ref(db, '/PFP4-B22');
-      onValue(dbRef, (snapshot) => {
-        if (snapshot.exists()) {
-          this.stages = Object.values(snapshot.val());
-        } else {
-          console.log("No stages data available");
+      const placesRef = ref(db, 'places');
+      onValue(placesRef, (snapshot) => {
+        const placesData = snapshot.val();
+        if (placesData) {
+          const filteredPlaces = Object.keys(placesData)
+            .map(key => placesData[key])
+            .filter(place => place.PFP2 >= 1);
+          
+          const institutionsRef = ref(db, 'institutions');
+          onValue(institutionsRef, (institutionsSnapshot) => {
+            const institutionsData = institutionsSnapshot.val();
+            if (institutionsData) {
+              this.places = [];
+
+              filteredPlaces.forEach(place => {
+                const institution = institutionsData[place.IDPlace] || {};
+
+                // Add each place only once, even if repeatCount is greater than 1
+                this.stages.push({
+                  Identifiant: place.IDPlace,
+                  NomPlace: institution.Name ,
+                  Lieu: institution.Lieu || '',
+                  Domaine: place.NomPlace,
+                  FR: place.FR,
+                  DE: place.DE,
+                  AIGU: place.AIGU,
+                  REHAB: place.REHAB,
+                  MSQ: place.MSQ,
+                  SYSINT: place.SYSINT,
+              NEUROGER: place['NEURO-GER'], // Using bracket notation to access the property
+                  AMBU: place.AMBU,
+                  takenBy: place.takenBy || null,
+                  NomP: `${institution.Name} - ${place.NomPlace} - ${institution.Lieu}`
+                });
+              });
+
+              console.log("Populated stages:", this.stages);
+
+              // Fetch votation results to determine taken stages
+              this.fetchTakenStages();
+            }
+          });
         }
-      }, (error) => {
-        console.error("Error fetching stages data:", error);
       });
     },
+
+    async fetchTakenStages() {
+      const votationRef = ref(db, 'votation_lese');
+      onValue(votationRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const takenData = snapshot.val();
+          for (const key in takenData) {
+            const takenStageId = takenData[key].selectedStageId;
+            if (takenStageId) {
+              this.takenStages.add(takenStageId);
+            }
+          }
+        }
+      });
+    },
+
     updateStudent(etudiant) {
       const studentRef = ref(db, `students/${etudiant.Classe}/${etudiant.id}`);
       set(studentRef, etudiant);
     },
+
     selectStage(stage) {
       this.selectedStage = stage;
       for (const etudiant of this.etudiants) {
@@ -197,7 +241,7 @@ export default {
           etudiant.PFPinfo[this.selectedPFP] = {};
         }
         etudiant.PFPinfo[this.selectedPFP].selectedStageName = `${stage.NomPlace} - ${stage.Lieu}`;
-        etudiant.PFPinfo[this.selectedPFP].selectedStageId = stage.id;
+        etudiant.PFPinfo[this.selectedPFP].selectedStageId = stage.Identifiant;
         this.updateStudent(etudiant);
       }
     },
@@ -218,8 +262,6 @@ export default {
                   ...student
                 };
                 this.checkValidation();
-                console.log("Current User Email:", this.currentUserEmail);
-                console.log("Matching Student:", this.currentStudent);
                 this.pfp1 = this.currentStudent.PFP1_info.IDA;
                 this.pfp2 = this.currentStudent.PFP2_info.IDA;
                 await this.fetchVoteResult(this.currentStudent.id); // Fetch the vote result when the student is found
@@ -228,9 +270,9 @@ export default {
             }
           }
         }
-        console.log("No matching student found.");
       }
     },
+
     async fetchVoteResult(studentId) {
       const votationRef = ref(db, `votation_lese/${studentId}`);
       const snapshot = await get(votationRef);
@@ -238,6 +280,7 @@ export default {
         this.voteResult = snapshot.val();
       }
     },
+
     checkValidation() {
       if (!this.currentStudent) return;
 
@@ -270,9 +313,10 @@ export default {
         this.validationMessage = "Tout validé";
       }
     },
+
     isStageVisible(stage) {
       // Check if the stage is already taken by another student
-      if (stage.takenBy) {
+      if (this.takenStages.has(stage.Identifiant)) {
         return false;
       }
 
@@ -297,6 +341,7 @@ export default {
       return true;
     }
   },
+
   async mounted() {
     this.fetchStudentsData();
     this.fetchStagesData();
@@ -312,10 +357,6 @@ export default {
   }
 };
 </script>
-
-
-
-
 
 <style scoped>
 .search-elements {
