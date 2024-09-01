@@ -46,24 +46,9 @@ import Management_votation from '@/components/Dashboard/DashboardDetails/Managem
 import ManagementPlace from '@/components/Dashboard/DashboardDetails/Management_place.vue';
 import VotationLese from '@/components/Dashboard/DashboardDetails/VotationLese.vue';
 
-import NewsFeed from '@/components/Social/NewsFeed.vue';
-import UserProfile from '@/components/Social/UserProfile.vue';
-import HashtagPage from '@/components/Social/HashtagPage.vue';
-import MentionGroupPage from '@/components/Social/MentionGroupPage.vue';
-
 // Define your routes
 const routes = [
-  { path: '/newsfeed', component: NewsFeed, name: 'NewsFeed' }, // Fil d'actualité
-  { path: '/profile/:username', component: UserProfile, name: 'UserProfile', props: true }, // Profil de l'utilisateur
-  { path: '/mention/:group', component: MentionGroupPage, name: 'MentionGroupPage', props: true, meta: { requiresAuth: true, requiredRole: true }},
-
-  {
-    path: '/hashtag/:hashtag',
-    component: HashtagPage,
-    name: 'HashtagPage',
-    props: true,
-    meta: { requiresAuth: true }  // Add requiresAuth to check for authentication and role-based access
-  },  { path: '/', component: HomePage, name: 'HomePage' },
+  { path: '/', component: HomePage, name: 'HomePage' },
   { path: '/sign_up', component: SignUp, name: 'sign_up' },
   { path: '/register', component: Register, name: 'register' },
   { path: '/sign_in', component: Login, name: 'login' },
@@ -114,41 +99,31 @@ const router = createRouter({
 });
 
 // Add navigation guard
-
 router.beforeEach(async (to, from, next) => {
   const user = auth.currentUser;
 
+  // Check if route requires authentication
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (user) {
+      // Fetch user roles from Firebase Realtime Database
       const userId = user.uid;
       const rolesRef = dbRef(db, `users/${userId}/roles`);
       const snapshot = await dbGet(rolesRef);
       const roles = snapshot.val();
 
-      if (roles) {
-        const userRoles = Object.keys(roles).filter(role => roles[role]); // Get roles with `true` value
-
-        // Check if route is HashtagPage and requires a specific role
-        if (to.name === 'HashtagPage') {
-          const requiredHashtag = to.params.hashtag;
-
-          // Check if the user has a role that matches the required hashtag
-          if (userRoles.includes(requiredHashtag)) {
-            next();  // User has the required role, allow access
-          } else {
-            alert('Access denied: You do not have the required permissions to view this page.');
-          }
-        } else {
-          next();  // If no specific role is required, allow access
-        }
+      // Check if user has the required role
+      if (roles && roles[to.meta.requiredRole]) {
+        next(); // User has the required role, allow access
       } else {
-        alert('Access denied: No roles found.');
+        alert('Access denied: You do not have the required permissions to view this page.');
+        next('/'); // Redirect to the home page or another authorized page
       }
     } else {
       alert('You must be logged in to access this page.');
+      next('/sign_in'); // Redirect to login page
     }
   } else {
-    next();  // If no authentication is required, proceed
+    next(); // If no authentication is required, proceed
   }
 });
 

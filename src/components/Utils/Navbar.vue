@@ -19,6 +19,10 @@
             </li>
 
             <li v-if="user" class="mx-2">
+              <a @click="navigateTo('/newsfeed')" class="flex m-0 px-0 py-3 text-900 font-medium line-height-3">Feed</a>
+            </li>
+
+            <li v-if="user" class="mx-2">
               <a @click="navigateTo('/institution')" class="flex m-0 px-0 py-3 text-900 font-medium line-height-3">Institutions</a>
             </li>
 
