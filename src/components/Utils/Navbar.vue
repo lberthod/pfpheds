@@ -34,8 +34,15 @@
             </li>
             <!-- Update: Show 'Admin' link only if the user has the required role -->
             <li v-if="user && hasAdminAccess" class="mx-2">
-              <a @click="navigateTo('/admin')" class="flex m-0 px-0 py-3 text-900 font-medium line-height-3">Admin</a>
+              <a @click="navigateTo('/management_places')" class="flex m-0 px-0 py-3 text-900 font-medium line-height-3">Management places</a>
             </li>
+            <li v-if="user && hasAdminAccess" class="mx-2">
+              <a @click="navigateTo('/management_votation')" class="flex m-0 px-0 py-3 text-900 font-medium line-height-3">Management votation</a>
+            </li>
+            <li v-if="user && hasAdminAccess" class="mx-2">
+            <a @click="navigateTo('/admin')" class="flex m-0 px-0 py-3 text-900 font-medium line-height-3">Admin</a>
+          </li>
+
             <li v-if="user" class="mx-2">
               <a @click="logout">
                 <Button type="button" label="Déconnexion" class="m-0"></Button>
