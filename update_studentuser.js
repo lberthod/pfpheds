@@ -4,8 +4,9 @@ import csv from 'csv-parser';
 // Define the path to your CSV file
 const filePath = 'users_students.csv'; // Replace with the path to your CSV file
 
-// Initialize an empty object to hold the transformed data
+// Initialize an empty object to hold the transformed data test
 const results = {};
+let ra = 2;
 
 // Create a readable stream from the CSV file
 fs.createReadStream(filePath)
