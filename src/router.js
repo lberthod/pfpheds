@@ -54,7 +54,7 @@ import MentionGroupPage from '@/components/Social/MentionGroupPage.vue';
 // Define your routes
 const routes = [
   { path: '/newsfeed', component: NewsFeed, name: 'NewsFeed' }, // Fil d'actualité
-  { path: '/profile/:username', component: UserProfile, name: 'UserProfile', props: true }, // Profil de l'utilisateur
+  { path: '/profile/:id', component: UserProfile, name: 'UserProfile', props: true }, // Profil de l'utilisateur
   { path: '/mention/:group', component: MentionGroupPage, name: 'MentionGroupPage', props: true, meta: { requiresAuth: true, requiredRole: true }},
 
   {

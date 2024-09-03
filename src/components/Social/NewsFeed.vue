@@ -4,34 +4,37 @@
     <div class="container mt-4">
       <h1>Fil d'actualité</h1>
 
-      <!-- Intégration du filtre de recherche avancée -->
+      <!-- Integrate Advanced Search Filter Component -->
       <AdvancedSearchFilter @filter-posts="applyFilters" />
 
-      <!-- Formulaire de création de post -->
+      <!-- Post Creation Form -->
       <div class="post-form">
-        <textarea v-model="newPost" placeholder="Écrivez quelque chose..." class="form-control mb-2"></textarea>
-        <select v-model="postType" class="form-select mb-2">
-          <option value="hashtag">Hashtag (#)</option>
-          <option value="mention">@Mention (Group)</option>
-        </select>
-        <input v-if="postType === 'mention'" v-model="mentionGroup" placeholder="Entrez le groupe (@BA23, @BA24, etc.)" class="form-control mb-2">
-        
-        <!-- Champ d'entrée pour les hashtags -->
-        <input v-if="postType === 'hashtag'" v-model="newHashtag" @keyup.enter="addHashtag" placeholder="Ajouter un hashtag (#BA23, #BA24, etc.)" class="form-control mb-2">
-        <div v-if="hashtags.length > 0" class="hashtags-container">
-          <span v-for="(hashtag, index) in hashtags" :key="index" class="badge bg-primary mr-2">
-            {{ hashtag }}
-            <button type="button" class="btn-close btn-sm text-white" @click="removeHashtag(index)"></button>
+        <textarea
+          v-model="newPost"
+          placeholder="Écrivez quelque chose... (#BA23, #BA24, @BA23, @BA24, etc.)"
+          class="form-control mb-2"
+        ></textarea>
+
+        <!-- Display detected hashtags or mentions -->
+        <div v-if="detectedTags.length > 0" class="tags-container">
+          <span
+            v-for="(tag, index) in detectedTags"
+            :key="index"
+            class="badge"
+            :class="tag.startsWith('#') ? 'bg-primary' : 'bg-secondary'"
+          >
+            {{ tag }}
           </span>
         </div>
-        
+
+        <!-- Submit Button -->
         <button class="btn btn-primary" @click="postMessage">Poster</button>
       </div>
 
-      <!-- Affichage des posts avec InfiniteScroll -->
+      <!-- Displaying Posts with InfiniteScroll -->
       <InfiniteScroll :loading="loading" @load-more="loadMorePosts">
         <PostItem
-          v-for="(post, index) in filteredPosts"
+          v-for="(post, index) in shuffledPosts"
           :key="post.id"
           :post="post"
           :currentUser="currentUser"
@@ -42,8 +45,8 @@
 </template>
 
 <script>
-import { ref as dbRef, push, set, onValue, serverTimestamp } from "firebase/database";
-import { db, auth } from '../../../firebase.js'; 
+import { ref as dbRef, push, set, onValue, serverTimestamp, limitToLast, query } from "firebase/database";
+import { db, auth } from '../../../firebase.js';
 import { onAuthStateChanged } from 'firebase/auth';
 import UserProfile from '@/components/Social/UserProfile.vue';
 import InfiniteScroll from '@/components/Social/InfiniteScroll.vue';
@@ -62,60 +65,60 @@ export default {
     return {
       posts: [],
       filteredPosts: [],
+      shuffledPosts: [],
       newPost: '',
-      postType: 'hashtag',
-      mentionGroup: '',
-      newHashtag: '',
-      hashtags: [],
+      detectedTags: [],
       currentUser: null,
       userRoles: [],
       loading: false,
       searchQuery: '',
       filterType: 'all',
-      sortOrder: 'newest'
+      filterValue: '',
+      sortOrder: 'newest',
+      postsPerPage: 10,
+      lastPostKey: null,
     };
   },
+  watch: {
+    newPost(value) {
+      this.detectedTags = this.extractTags(value);
+    },
+    filteredPosts(newFilteredPosts) {
+      this.shuffledPosts = this.shufflePosts(newFilteredPosts);
+    }
+  },
   methods: {
-    navigateToHashtag(hashtag) {
-      this.$router.push({ name: 'HashtagPage', params: { hashtag } });
-    },
-    navigateToMentionGroup(group) {
-      if (this.hasRole(group)) {
-        this.$router.push({ name: 'MentionGroupPage', params: { group } });
-      } else {
-        alert(`Accès refusé: Vous n'avez pas le rôle nécessaire pour accéder à @${group}.`);
-      }
-    },
-    addHashtag() {
-      if (this.newHashtag.trim() !== '' && !this.hashtags.includes(this.newHashtag)) {
-        this.hashtags.push(this.newHashtag);
-        this.newHashtag = '';
-      }
-    },
-    removeHashtag(index) {
-      this.hashtags.splice(index, 1);
+    extractTags(text) {
+      const regex = /[#@][\w-]+/g;
+      return text.match(regex) || [];
     },
     postMessage() {
       if (this.newPost.trim() === '') {
-        alert("Veuillez écrire quelque chose avant de poster.");
+        this.showMessage("Veuillez écrire quelque chose avant de poster.");
         return;
       }
 
+      if (this.detectedTags.length === 0) {
+        this.showMessage("Veuillez inclure au moins un hashtag ou une mention dans votre message.");
+        return;
+      }
+
+      const authorName = this.currentUser.displayName || this.currentUser.email.split('@')[0];
+
       const newPostRef = push(dbRef(db, 'posts'));
       const postData = {
-        author: this.currentUser.email,
+        author: authorName,
+        authorId: this.currentUser.uid,
         content: this.newPost,
         timestamp: serverTimestamp(),
-        hashtags: this.hashtags,
-        mentionGroups: this.mentionGroup ? [this.mentionGroup.replace('@', '')] : [],
+        hashtags: this.detectedTags.filter(tag => tag.startsWith('#')),
+        mentionGroups: this.detectedTags.filter(tag => tag.startsWith('@')),
         replies: []
       };
 
       set(newPostRef, postData)
         .then(() => {
           this.newPost = '';
-          this.mentionGroup = '';
-          this.hashtags = [];
         })
         .catch(error => {
           console.error("Erreur lors de la publication du message:", error);
@@ -124,23 +127,46 @@ export default {
     fetchPosts() {
       this.loading = true;
 
-      const postsRef = dbRef(db, 'posts');
+      let postsRef;
+      if (this.lastPostKey) {
+        postsRef = query(
+          dbRef(db, 'posts'),
+          limitToLast(this.postsPerPage + 1)
+        );
+      } else {
+        postsRef = query(
+          dbRef(db, 'posts'),
+          limitToLast(this.postsPerPage)
+        );
+      }
+
       onValue(postsRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          this.posts = Object.entries(data).map(([key, post]) => ({
+          const postsArray = Object.entries(data).map(([key, post]) => ({
             ...post,
             id: key
           }));
+
+          if (this.lastPostKey) {
+            postsArray.shift();
+          }
+
+          this.posts = [...this.posts, ...postsArray];
+          this.lastPostKey = postsArray.length > 0 ? postsArray[postsArray.length - 1].id : null;
+
           this.applyFilters();
         }
         this.loading = false;
+      }, {
+        onlyOnce: true
       });
     },
     applyFilters(filterOptions = null) {
       if (filterOptions) {
         this.searchQuery = filterOptions.query;
         this.filterType = filterOptions.type;
+        this.filterValue = filterOptions.value;
         this.sortOrder = filterOptions.order;
       }
 
@@ -150,13 +176,13 @@ export default {
         filtered = filtered.filter(post => post.content.toLowerCase().includes(this.searchQuery.toLowerCase()));
       }
 
+      filtered = filtered.filter(post => this.isAccessible(post));
+
       if (this.filterType !== 'all') {
         if (this.filterType === 'hashtag') {
-          filtered = filtered.filter(post => post.hashtags && post.hashtags.includes(this.searchQuery));
+          filtered = filtered.filter(post => post.hashtags && post.hashtags.includes(`#${this.filterValue}`));
         } else if (this.filterType === 'mention') {
-          filtered = filtered.filter(post => post.mentionGroups && post.mentionGroups.includes(this.searchQuery));
-        } else if (this.filterType === 'author') {
-          filtered = filtered.filter(post => post.author.toLowerCase().includes(this.searchQuery.toLowerCase()));
+          filtered = filtered.filter(post => post.mentionGroups && post.mentionGroups.includes(`@${this.filterValue}`));
         }
       }
 
@@ -168,12 +194,36 @@ export default {
 
       this.filteredPosts = filtered;
     },
-    loadMorePosts() {
-      // Logic for infinite scroll (fetching more posts)
-      this.fetchPosts(); // Re-fetch for simplicity, improve with pagination logic
+    shufflePosts(posts) {
+      for (let i = posts.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [posts[i], posts[j]] = [posts[j], posts[i]];
+      }
+      return posts;
+    },
+    isAccessible(post) {
+      if (post.mentionGroups && post.mentionGroups.length > 0) {
+        return post.mentionGroups.some(group => this.hasRole(group.replace('@', '')));
+      }
+      return true;
     },
     hasRole(role) {
       return this.userRoles.includes(role);
+    },
+    loadMorePosts() {
+      if (!this.loading) {
+        this.fetchPosts();
+      }
+    },
+    showMessage(message) {
+      const messageDiv = document.createElement('div');
+      messageDiv.textContent = message;
+      messageDiv.className = 'alert alert-warning mt-2';
+      this.$el.querySelector('.post-form').appendChild(messageDiv);
+
+      setTimeout(() => {
+        messageDiv.remove();
+      }, 3000);
     }
   },
   mounted() {
@@ -204,17 +254,11 @@ export default {
   margin: 0 auto;
 }
 
-.navigation-buttons {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
 .post-form {
   margin-bottom: 20px;
 }
 
-.hashtags-container {
+.tags-container {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
@@ -223,5 +267,10 @@ export default {
 
 .feed {
   margin-top: 20px;
+}
+
+.alert {
+  position: relative;
+  top: 10px;
 }
 </style>
