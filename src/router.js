@@ -61,8 +61,7 @@ const routes = [
     path: '/hashtag/:hashtag',
     component: HashtagPage,
     name: 'HashtagPage',
-    props: true,
-    meta: { requiresAuth: true }  // Add requiresAuth to check for authentication and role-based access
+    props: true
   },  { path: '/', component: HomePage, name: 'HomePage' },
   { path: '/sign_up', component: SignUp, name: 'sign_up' },
   { path: '/register', component: Register, name: 'register' },
@@ -115,6 +114,8 @@ const router = createRouter({
 
 // Add navigation guard
 
+
+// Add navigation guard
 router.beforeEach(async (to, from, next) => {
   const user = auth.currentUser;
 
@@ -126,30 +127,33 @@ router.beforeEach(async (to, from, next) => {
       const roles = snapshot.val();
 
       if (roles) {
-        const userRoles = Object.keys(roles).filter(role => roles[role]); // Get roles with `true` value
+        const userRoles = Object.keys(roles).filter(role => roles[role]);
 
-        // Check if route is HashtagPage and requires a specific role
-        if (to.name === 'HashtagPage') {
-          const requiredHashtag = to.params.hashtag;
+        if (to.name === 'MentionGroupPage') {
+          const requiredGroup = to.params.group;
 
-          // Check if the user has a role that matches the required hashtag
-          if (userRoles.includes(requiredHashtag)) {
+          // Check if the user has a role that matches the required group
+          if (userRoles.includes(requiredGroup)) {
             next();  // User has the required role, allow access
           } else {
             alert('Access denied: You do not have the required permissions to view this page.');
+            next(false); // Prevent navigation
           }
         } else {
           next();  // If no specific role is required, allow access
         }
       } else {
         alert('Access denied: No roles found.');
+        next(false); // Prevent navigation
       }
     } else {
       alert('You must be logged in to access this page.');
+      next('/sign_in'); // Redirect to login page
     }
   } else {
     next();  // If no authentication is required, proceed
   }
 });
+
 
 export default router;

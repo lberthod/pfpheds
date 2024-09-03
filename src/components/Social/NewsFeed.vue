@@ -4,44 +4,39 @@
     <div class="container mt-4">
       <h1>Fil d'actualité</h1>
 
-      <!-- Navigation buttons for hashtags -->
-      <div class="hashtag-navigation-buttons">
-        <button class="btn btn-outline-primary" @click="navigateToHashtag('BA23')">Hashtag BA23</button>
-        <button class="btn btn-outline-primary" @click="navigateToHashtag('BA24')">Hashtag BA24</button>
-      </div>
+      <!-- Intégration du filtre de recherche avancée -->
+      <AdvancedSearchFilter @filter-posts="applyFilters" />
 
-      <!-- Post creation form -->
+      <!-- Formulaire de création de post -->
       <div class="post-form">
-        <textarea v-model="newPost" placeholder="Écrivez quelque chose..."></textarea>
-        <select v-model="postType">
+        <textarea v-model="newPost" placeholder="Écrivez quelque chose..." class="form-control mb-2"></textarea>
+        <select v-model="postType" class="form-select mb-2">
           <option value="hashtag">Hashtag (#)</option>
           <option value="mention">@Mention (Group)</option>
         </select>
-        <input v-if="postType === 'mention'" v-model="mentionGroup" placeholder="Entrez le groupe (@BA23, @BA24, etc.)">
-        <button @click="postMessage">Poster</button>
+        <input v-if="postType === 'mention'" v-model="mentionGroup" placeholder="Entrez le groupe (@BA23, @BA24, etc.)" class="form-control mb-2">
+        
+        <!-- Champ d'entrée pour les hashtags -->
+        <input v-if="postType === 'hashtag'" v-model="newHashtag" @keyup.enter="addHashtag" placeholder="Ajouter un hashtag (#BA23, #BA24, etc.)" class="form-control mb-2">
+        <div v-if="hashtags.length > 0" class="hashtags-container">
+          <span v-for="(hashtag, index) in hashtags" :key="index" class="badge bg-primary mr-2">
+            {{ hashtag }}
+            <button type="button" class="btn-close btn-sm text-white" @click="removeHashtag(index)"></button>
+          </span>
+        </div>
+        
+        <button class="btn btn-primary" @click="postMessage">Poster</button>
       </div>
 
-      <!-- Displaying posts -->
-      <div class="feed">
-        <div v-for="(post, index) in posts" :key="index" class="post">
-          <p><strong>{{ post.author }}</strong>: {{ post.content }}</p>
-          <p v-if="post.responseTo"><strong>Réponse à:</strong> {{ post.responseTo.content }}</p>
-          <button v-if="currentUser" @click="toggleReplyForm(index)">Répondre</button>
-          
-          <!-- Reply form -->
-          <div v-if="replyForms[index]" class="reply-form">
-            <textarea v-model="replyContent[index]" placeholder="Écrire une réponse..."></textarea>
-            <button @click="submitReply(post, index)">Envoyer</button>
-          </div>
-          
-          <!-- Display replies -->
-          <div v-if="post.replies" class="replies">
-            <div v-for="(reply, replyIndex) in post.replies" :key="replyIndex" class="reply">
-              <p><strong>{{ reply.author }}</strong>: {{ reply.content }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Affichage des posts avec InfiniteScroll -->
+      <InfiniteScroll :loading="loading" @load-more="loadMorePosts">
+        <PostItem
+          v-for="(post, index) in filteredPosts"
+          :key="post.id"
+          :post="post"
+          :currentUser="currentUser"
+        />
+      </InfiniteScroll>
     </div>
   </div>
 </template>
@@ -50,29 +45,55 @@
 import { ref as dbRef, push, set, onValue, serverTimestamp } from "firebase/database";
 import { db, auth } from '../../../firebase.js'; 
 import { onAuthStateChanged } from 'firebase/auth';
-import Navbar from '@/components/Utils/Navbar.vue';
 import UserProfile from '@/components/Social/UserProfile.vue';
+import InfiniteScroll from '@/components/Social/InfiniteScroll.vue';
+import PostItem from '@/components/Social/PostItem.vue';
+import AdvancedSearchFilter from '@/components/Social/AdvancedSearchFilter.vue';
 
 export default {
   name: "NewsFeed",
   components: {
-    Navbar,
-    UserProfile
+    UserProfile,
+    InfiniteScroll,
+    PostItem,
+    AdvancedSearchFilter
   },
   data() {
     return {
       posts: [],
+      filteredPosts: [],
       newPost: '',
-      postType: 'hashtag', // Default to hashtag
-      mentionGroup: '', // To store the group for @mention messages
+      postType: 'hashtag',
+      mentionGroup: '',
+      newHashtag: '',
+      hashtags: [],
       currentUser: null,
-      replyForms: [], // Array to keep track of which posts' reply forms are open
-      replyContent: [] // Array to keep track of reply content for each post
+      userRoles: [],
+      loading: false,
+      searchQuery: '',
+      filterType: 'all',
+      sortOrder: 'newest'
     };
   },
   methods: {
     navigateToHashtag(hashtag) {
       this.$router.push({ name: 'HashtagPage', params: { hashtag } });
+    },
+    navigateToMentionGroup(group) {
+      if (this.hasRole(group)) {
+        this.$router.push({ name: 'MentionGroupPage', params: { group } });
+      } else {
+        alert(`Accès refusé: Vous n'avez pas le rôle nécessaire pour accéder à @${group}.`);
+      }
+    },
+    addHashtag() {
+      if (this.newHashtag.trim() !== '' && !this.hashtags.includes(this.newHashtag)) {
+        this.hashtags.push(this.newHashtag);
+        this.newHashtag = '';
+      }
+    },
+    removeHashtag(index) {
+      this.hashtags.splice(index, 1);
     },
     postMessage() {
       if (this.newPost.trim() === '') {
@@ -80,84 +101,79 @@ export default {
         return;
       }
 
-      let newPostRef;
-      let postData = {
+      const newPostRef = push(dbRef(db, 'posts'));
+      const postData = {
         author: this.currentUser.email,
         content: this.newPost,
         timestamp: serverTimestamp(),
-        replies: []  // Initialize replies as an empty array
+        hashtags: this.hashtags,
+        mentionGroups: this.mentionGroup ? [this.mentionGroup.replace('@', '')] : [],
+        replies: []
       };
 
-      if (this.postType === 'hashtag') {
-        newPostRef = push(dbRef(db, 'hashtagMessages'));
-      } else if (this.postType === 'mention' && this.mentionGroup.trim() !== '') {
-        postData.group = this.mentionGroup.replace('@', ''); // Save the group without '@'
-        newPostRef = push(dbRef(db, 'mentionMessages'));
-      } else {
-        alert("Veuillez entrer un groupe valide pour le message @mention.");
-        return;
-      }
-
-      set(newPostRef, postData);
-      this.newPost = ''; // Clear the textarea after posting
-      this.mentionGroup = ''; // Clear the mention group input
+      set(newPostRef, postData)
+        .then(() => {
+          this.newPost = '';
+          this.mentionGroup = '';
+          this.hashtags = [];
+        })
+        .catch(error => {
+          console.error("Erreur lors de la publication du message:", error);
+        });
     },
     fetchPosts() {
-      // Fetch both hashtag and mention messages
-      const hashtagRef = dbRef(db, 'hashtagMessages');
-      onValue(hashtagRef, (snapshot) => {
+      this.loading = true;
+
+      const postsRef = dbRef(db, 'posts');
+      onValue(postsRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
           this.posts = Object.entries(data).map(([key, post]) => ({
             ...post,
-            id: key  // Use the Firebase key for each post
+            id: key
           }));
-        } else {
-          this.posts = [];
+          this.applyFilters();
         }
-      });
-
-      const mentionRef = dbRef(db, 'mentionMessages');
-      onValue(mentionRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          this.posts.push(...Object.entries(data).map(([key, post]) => ({
-            ...post,
-            id: key  // Use the Firebase key for each post
-          })));
-        }
+        this.loading = false;
       });
     },
-    toggleReplyForm(index) {
-      this.$set(this.replyForms, index, !this.replyForms[index]); // Toggle the reply form visibility
-      if (!this.replyForms[index]) {
-        this.$set(this.replyContent, index, ''); // Clear the reply content if the form is closed
-      }
-    },
-    submitReply(post, index) {
-      if (!this.replyContent[index] || this.replyContent[index].trim() === '') {
-        alert("Veuillez écrire quelque chose avant de répondre.");
-        return;
+    applyFilters(filterOptions = null) {
+      if (filterOptions) {
+        this.searchQuery = filterOptions.query;
+        this.filterType = filterOptions.type;
+        this.sortOrder = filterOptions.order;
       }
 
-      const newReply = {
-        author: this.currentUser.email,
-        content: this.replyContent[index],
-        timestamp: serverTimestamp(),
-        responseTo: {
-          id: post.id,
-          author: post.author,
-          content: post.content
+      let filtered = this.posts;
+
+      if (this.searchQuery) {
+        filtered = filtered.filter(post => post.content.toLowerCase().includes(this.searchQuery.toLowerCase()));
+      }
+
+      if (this.filterType !== 'all') {
+        if (this.filterType === 'hashtag') {
+          filtered = filtered.filter(post => post.hashtags && post.hashtags.includes(this.searchQuery));
+        } else if (this.filterType === 'mention') {
+          filtered = filtered.filter(post => post.mentionGroups && post.mentionGroups.includes(this.searchQuery));
+        } else if (this.filterType === 'author') {
+          filtered = filtered.filter(post => post.author.toLowerCase().includes(this.searchQuery.toLowerCase()));
         }
-      };
+      }
 
-      // Add the reply to the post in Firebase
-      const postRef = dbRef(db, `${post.group ? 'mentionMessages' : 'hashtagMessages'}/${post.id}/replies`);
-      push(postRef, newReply);
+      if (this.sortOrder === 'newest') {
+        filtered.sort((a, b) => b.timestamp - a.timestamp);
+      } else {
+        filtered.sort((a, b) => a.timestamp - b.timestamp);
+      }
 
-      // Clear the reply form and hide it
-      this.$set(this.replyContent, index, '');
-      this.$set(this.replyForms, index, false);
+      this.filteredPosts = filtered;
+    },
+    loadMorePosts() {
+      // Logic for infinite scroll (fetching more posts)
+      this.fetchPosts(); // Re-fetch for simplicity, improve with pagination logic
+    },
+    hasRole(role) {
+      return this.userRoles.includes(role);
     }
   },
   mounted() {
@@ -165,8 +181,17 @@ export default {
       if (user) {
         this.currentUser = user;
         this.fetchPosts();
+
+        const userRef = dbRef(db, `users/${user.uid}`);
+        onValue(userRef, (snapshot) => {
+          const userData = snapshot.val();
+          if (userData && userData.roles) {
+            this.userRoles = Object.keys(userData.roles);
+          }
+        });
       } else {
         this.currentUser = null;
+        this.userRoles = [];
       }
     });
   }
@@ -179,31 +204,24 @@ export default {
   margin: 0 auto;
 }
 
+.navigation-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
 .post-form {
   margin-bottom: 20px;
 }
 
+.hashtags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
 .feed {
   margin-top: 20px;
-}
-
-.post {
-  padding: 10px;
-  border-bottom: 1px solid #ccc;
-}
-
-.reply-form {
-  margin-top: 10px;
-  margin-bottom: 20px;
-}
-
-.hashtag-navigation-buttons {
-  margin-bottom: 20px;
-  display: flex;
-  gap: 10px;
-}
-
-button {
-  margin-top: 10px;
 }
 </style>
