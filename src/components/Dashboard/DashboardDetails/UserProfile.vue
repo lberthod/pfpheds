@@ -3,28 +3,41 @@
     <div class="grid">
       <div class="col-12">
         <div class="card">
+          <h5>Profil de l'utilisateur</h5>
           <div v-if="userProfile">
             <p><strong>Nom :</strong> {{ userProfile.Nom }}</p>
             <p><strong>Prénom :</strong> {{ userProfile.Prenom }}</p>
             <p><strong>Classe :</strong> {{ userProfile.Classe }}</p>
-            <h5>Détails des critères :</h5>
-            <DataTable :value="criteria" tableStyle="min-width: 50rem">
-              <Column v-for="col of criteriaColumns" :key="col.field" :field="col.field" :header="col.header"></Column>
+            <p><strong>E-Mail :</strong> {{ userProfile.Mail }}</p>
+            <p><strong>Répondant.e HES :</strong> {{ userProfile.ReponsantHES }}</p>
+            <p><strong>Remarque :</strong> {{ userProfile.Remarque }}</p>
+            <h5>Détails</h5>
+            <DataTable :value="[userProfile]" tableStyle="min-width: 50rem">
+              <Column field="fr" header="FR" :body="formatColumn('FR')"></Column>
+              <Column field="all" header="ALL" :body="formatColumn('ALL')"></Column>
+              <Column field="AMBU" header="AMBU" :body="formatColumn('AMBU')"></Column>
+              <Column field="AIGU" header="AIGU" :body="formatColumn('AIGU')"></Column>
+              <Column field="MSQ" header="MSQ" :body="formatColumn('MSQ')"></Column>
+              <Column field="SYSINT" header="SYSINT" :body="formatColumn('SYSINT')"></Column>
+              <Column field="NEUROGER" header="NEUROGER" :body="formatColumn('NEUROGER')"></Column>
+              <Column field="REHAB" header="REHAB" :body="formatColumn('REHAB')"></Column>
             </DataTable>
           </div>
           <div v-else>
-            <p>Chargement des données du profil ...</p>
+            <p>Chargement des données du profil...</p>
           </div>
         </div>
 
-        <!-- DataTable pour les stages -->
+        <!-- Tableau unique pour les stages -->
         <div class="card mt-4">
-          <h5>Stages</h5>
-          <DataTable :value="stages" tableStyle="min-width: 50rem">
-            <Column field="Nom" header="Nom"></Column>
-            <Column field="Lieu" header="Lieu"></Column>
-            <Column field="Langue" header="Langue"></Column>
-            <Column field="Secteur" header="Secteur"></Column>
+          <h5>Stages Précédents</h5>
+          <DataTable :value="stages" :rows="10" dataKey="id" :rowHover="true" :loading="loading"
+            showGridlines tableStyle="min-width: 50rem">
+            <template #empty> Pas de stages disponibles. </template>
+            <template #loading> Chargement des données des stages. Veuillez patienter. </template>
+            <Column field="NomPlace" header="Institution" style="min-width: 12rem"></Column>
+            <Column field="Lieu" header="Lieu" style="min-width: 12rem"></Column>
+            <Column field="Langue" header="Langue" style="min-width: 12rem"></Column>
           </DataTable>
         </div>
       </div>
@@ -36,52 +49,19 @@
 import { ref, onMounted } from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import { getDatabase, ref as dbRef, get } from "firebase/database";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import InputText from 'primevue/inputtext';
+import {ref as dbRef, get } from "firebase/database";
+import {  onAuthStateChanged } from "firebase/auth";
+import { db, auth } from '../../../../firebase.js';
 
 const stages = ref([]);
 const userProfile = ref(null);
-const criteria = ref([]);
 const loading = ref(true);
-
-const criteriaColumns = ref([
-  { field: 'FR', header: 'FR' },
-  { field: 'ALL', header: 'ALL' },
-  { field: 'AMBU', header: 'AMBU' },
-  { field: 'MSQ', header: 'MSQ' },
-  { field: 'SYSINT', header: 'SYSINT' },
-  { field: 'NEUROGER', header: 'NEUROGER' },
-  { field: 'REHAB', header: 'REHAB' },
-  { field: 'AIGU', header: 'AIGU' }
-]);
-
-const stagesColumns = ref([
-  { field: 'Nom', header: 'Nom' },
-  { field: 'Lieu', header: 'Lieu' },
-  { field: 'Langue', header: 'Langue' },
-  { field: 'Secteur', header: 'Secteur' }
-]);
-
-const fetchStages = async () => {
-  const db = getDatabase();
-  const stagesRef = dbRef(db, 'stages');
-  const snapshot = await get(stagesRef);
-  if (snapshot.exists()) {
-    stages.value = Object.keys(snapshot.val()).map(key => ({
-      id: key,
-      ...snapshot.val()[key]
-    }));
-  } else {
-    stages.value = [];
-  }
-  loading.value = false;
-};
+const globalFilter = ref('');
 
 const fetchUserProfile = async (email) => {
-  const db = getDatabase();
   const studentsRef = dbRef(db, 'students');
   const snapshot = await get(studentsRef);
-
   if (snapshot.exists()) {
     const studentsData = snapshot.val();
     for (const classKey in studentsData) {
@@ -93,40 +73,58 @@ const fetchUserProfile = async (email) => {
             Classe: classKey,
             ...student
           };
-
-          criteria.value = [
-            {
-              FR: student.FR,
-              ALL: student.ALL,
-              AMBU: student.AMBU,
-              MSQ: student.MSQ,
-              SYSINT: student.SYSINT,
-              NEUROGER: student.NEUROGER,
-              REHAB: student.REHAB,
-              AIGU: student.AIGU
-            }
-          ];
-
-          if (student.PFP1_info) {
-            stages.value.push({
-              id: `PFP1-${studentKey}`,
-              ...student.PFP1_info,
-              Secteur: getSecteurs(student.PFP1_info)
-            });
-          }
-          if (student.PFP2_info) {
-            stages.value.push({
-              id: `PFP2-${studentKey}`,
-              ...student.PFP2_info,
-              Secteur: getSecteurs(student.PFP2_info)
-            });
-          }
+          console.log('Profil utilisateur récupéré :', userProfile.value);
+          addAllPFPInfoToStages(student, studentKey);
           return;
         }
       }
     }
   }
   userProfile.value = null;
+  console.log('Profil utilisateur non trouvé');
+};
+
+
+
+
+
+const addAllPFPInfoToStages = async (student, studentKey) => {
+  const pfpInfos = ['PFP1_info', 'PFP2_info', 'PFP3_info', 'PFP4_info'];
+
+  for (const pfp of pfpInfos) {
+    if (student[pfp]) {
+      let idPlace = student[pfp].institutionId;
+
+      if (!idPlace) {
+        console.error("IDPlace est manquant pour", pfp);
+        continue;
+      }
+
+      // Référence de l'institution
+      const institutionRef = dbRef(db, `institutions/${idPlace}`);
+      console.log("Okkko");
+
+      try {
+        const snapshot = await get(institutionRef);
+        if (snapshot.exists()) {
+          const institutionData = snapshot.val();
+          console.log("Okkk1");
+          stages.value.push({
+            id: `${pfp}-${studentKey}`,
+            NomPlace:  (institutionData.Name || 'N/A'),
+            Lieu: institutionData.Lieu || 'N/A',
+            Langue: institutionData.Langue || 'N/A',
+          });
+        } else {
+          console.log("Pas de données disponibles pour l'IDPlace:", idPlace);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération de l'institution:", error);
+      }
+    }
+  }
+
+  console.log('Stages après ajout des infos PFP :', stages.value);
 };
 
 const getSecteurs = (info) => {
@@ -135,47 +133,69 @@ const getSecteurs = (info) => {
   if (info.REHAB === 1) secteurs.push('REHAB');
   if (info.AIGU === 1) secteurs.push('AIGU');
   if (info.MSQ === 1) secteurs.push('MSQ');
-  if (info.AMBU === 1) secteurs.push('AMBU');
   if (info.SYSINT === 1) secteurs.push('SYSINT');
-
+  if (info.AMBU === 1) secteurs.push('AMBU');
   return secteurs.join(', ');
 };
 
-const criteriaTemplate = (rowData) => {
-  const validCriteria = [];
+const secteurTemplate = (rowData) => {
+  return rowData.Secteur;
+};
 
-  if (rowData.FR === '1') validCriteria.push('FR');
-  if (rowData.ALL === '1') validCriteria.push('ALL');
-  if (rowData.AIGU) validCriteria.push('AIGU');
-  if (rowData.REHAB) validCriteria.push('REHAB');
-  if (rowData.MSQ) validCriteria.push('MSQ');
-  if (rowData.SYSINT) validCriteria.push('SYSINT');
-  if (rowData.NEUROGER) validCriteria.push('NEUROGER');
-  if (rowData.AMBU) validCriteria.push('AMBU');
+const getClass = (value) => {
+  return value >= 1 ? 'text-green-500' : 'text-red-500';
+};
 
-  return validCriteria.join(', ');
+const formatColumn = (field) => {
+  return (rowData) => {
+    const value = rowData[field];
+    return `<span class="${getClass(value)}">${formatValue(value)}</span>`;
+  };
+};
+
+const formatValue = (value) => {
+  return value >= 1 ? `✔️ ${value}` : `❌ ${value}`;
 };
 
 onMounted(async () => {
-  const auth = getAuth();
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       await fetchUserProfile(user.email);
+      loading.value = false;
     } else {
       userProfile.value = null;
+      loading.value = false;
     }
   });
-  await fetchStages();
 });
 </script>
 
 <style scoped>
 .details-table {
-  margin-top: 1rem;
   width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
 }
 
-.mt-4 {
-  margin-top: 1.5rem;
+.details-table th,
+.details-table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+.details-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.text-green-500 {
+  color: green;
+  font-weight: bold;
+}
+
+.text-red-500 {
+  color: red;
+  font-weight: bold;
 }
 </style>
