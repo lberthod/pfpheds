@@ -24,9 +24,8 @@
             <!-- PDF upload section for Cyberlearn -->
             <div class="col-12 md:col-6">
               <div class="p-field">
-                <label for="cyberlearn">Descriptif FP</label>
-
-                <FileUpload mode="basic" @select="onPdfChange" customUpload auto severity="secondary" class="p-button-outlined" />
+                <label for="cyberlearn">Descriptif FP (PDF)</label>
+                <input type="file" accept="application/pdf" @change="onPdfChange" class="p-button-outlined p-mt-2" />
                 <p v-if="institution.CyberlearnURL" class="mt-2">PDF actuel : <a :href="institution.CyberlearnURL" target="_blank">Voir le PDF</a></p>
               </div>
             </div>

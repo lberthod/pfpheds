@@ -1,5 +1,96 @@
+<script setup>
+import { ref, onMounted } from 'vue';
+import { getStorage, ref as storageRef, listAll, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+
+// Initialisation des données
+const folders = ref([
+  { name: 'Documents de stage', path: 'documents-stage/', icon: 'pi pi-folder' },
+  { name: 'Certificats', path: 'certificats/', icon: 'pi pi-folder' },
+  { name: 'Contrats', path: 'contrats/', icon: 'pi pi-folder' }
+]);
+
+const selectedFolder = ref(null);  // Dossier sélectionné
+const files = ref([]);  // Fichiers dans le dossier sélectionné
+const subFolders = ref([]);  // Sous-dossiers dans le dossier sélectionné
+const uploadFiles = ref([]);  // Fichiers à uploader
+const storage = getStorage();  // Firebase Storage
+const currentUser = ref(null);  // Utilisateur courant
+const userFolderPath = ref('');  // Chemin de stockage spécifique à l'utilisateur
+
+// Fonction pour charger les fichiers et sous-dossiers à partir du Storage Firebase
+const loadFilesAndSubFoldersFromFolder = async (folderPath) => {
+  const folderRef = storageRef(storage, `${userFolderPath.value}${folderPath}`);
+  const result = await listAll(folderRef);
+
+  // Nettoyer les fichiers et sous-dossiers actuels
+  files.value = [];
+  subFolders.value = [];
+
+  // Parcourir les fichiers et les sous-dossiers
+  result.items.forEach(async (itemRef) => {
+    const fileUrl = await getDownloadURL(itemRef);
+    files.value.push({ name: itemRef.name, url: fileUrl });
+  });
+
+  result.prefixes.forEach((subFolderRef) => {
+    subFolders.value.push({ name: subFolderRef.name, path: subFolderRef.fullPath });
+  });
+};
+
+// Gérer le clic sur un dossier
+const onFolderClick = (folder) => {
+  selectedFolder.value = folder;
+  loadFilesAndSubFoldersFromFolder(folder.path);  // Charger les fichiers et sous-dossiers
+};
+
+// Gérer l'upload de fichiers dans le dossier sélectionné
+const onSelectedFiles = async (event) => {
+  if (!selectedFolder.value || !currentUser.value) {
+    alert('Sélectionnez un dossier avant de télécharger.');
+    return;
+  }
+
+  for (const file of event.files) {
+    const acceptedFormats = ['image/jpeg', 'image/png', 'audio/mpeg', 'video/mp4', 'application/pdf'];
+
+    if (!acceptedFormats.includes(file.type)) {
+      alert('Type de fichier non accepté. Veuillez uploader un fichier JPG, PNG, MP3, MP4 ou PDF.');
+      continue;
+    }
+
+    // Utiliser le chemin spécifique de l'utilisateur pour stocker le fichier
+    const fileRef = storageRef(storage, `${userFolderPath.value}${selectedFolder.value.path}${file.name}`);
+    await uploadBytes(fileRef, file);  // Uploader le fichier dans Firebase Storage
+    const fileUrl = await getDownloadURL(fileRef);
+    files.value.push({ name: file.name, url: fileUrl });  // Ajouter à la liste des fichiers affichés
+  }
+};
+
+// Gérer le choix de fichier pour uploader
+const onChooseUploadFiles = () => {
+  fileUploaderRef.value.choose();  // Ouvrir le sélecteur de fichiers
+};
+
+// Surveiller l'état de connexion de l'utilisateur
+onMounted(() => {
+  const auth = getAuth();
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser.value = user;
+      userFolderPath.value = `users/${user.uid}/`;  // Utiliser l'ID utilisateur pour son chemin dans Storage
+      console.log(`Chemin de stockage pour cet utilisateur : ${userFolderPath.value}`);
+    } else {
+      currentUser.value = null;
+      userFolderPath.value = '';
+    }
+  });
+});
+</script>
+
 <template>
   <div class="grid">
+    <!-- Section pour uploader des fichiers -->
     <div class="col-12 md:col-5 xl:col-3">
       <div class="card p-0">
         <div class="card">
@@ -7,55 +98,38 @@
             ref="fileUploaderRef"
             id="files-fileupload"
             name="demo[]"
-            url="./upload.php"
-            accept="image/*"
-            customUpload
-            multiple
-            auto
-            class="upload-button-hidden w-full"
-            invalidFileSizeMessage="Invalid File Size"
-            invalidFileTypeMessage="Invalid File Type"
-            :maxFileSize="1000000"
-            @select="onSelectedFiles"
-            :pt="{
-              buttonbar: { class: 'hidden' },
-              content: { class: 'border-none' }
-            }"
+            accept=".jpg,.png,.mp3,.mp4,.pdf"
+          customUpload
+          multiple
+          auto
+          class="upload-button-hidden w-full"
+          @select="onSelectedFiles"
+          :pt="{
+          buttonbar: { class: 'hidden' },
+          content: { class: 'border-none' }
+          }"
           >
-            <template #content>
-              <div v-if="uploadFiles.length > 0" class="w-full py-3" :style="{ cursor: 'copy' }">
-                <div v-for="file in uploadFiles" :key="file.name" class="flex flex-wrap gap-5">
-                  <div class="remove-file-wrapper h-full relative w-7rem h-7rem border-3 border-transparent border-round hover:bg-primary transition-duration-100 cursor-auto" :style="{ padding: '1px' }">
-                    <img :src="file.objectURL" :alt="file.name" class="w-full h-full border-round shadow-2" />
-                    <Button
-                      icon="pi pi-times"
-                      class="remove-button text-sm absolute justify-content-center align-items-center cursor-pointer"
-                      rounded
-                      :style="{ top: '-10px', right: '-10px', display: 'none' }"
-                      @click="onRemoveFile(file)"
-                    ></Button>
-                  </div>
-                </div>
+          <template #empty>
+            <div v-if="uploadFiles.length < 1" @click="onChooseUploadFiles" class="w-full py-3" :style="{ cursor: 'copy' }">
+              <div class="h-full flex flex-column justify-content-center align-items-center">
+                <i class="pi pi-upload text-900 text-2xl mb-3"></i>
+                <span class="font-bold text-900 text-xl mb-3">Télécharger des fichiers</span>
+                <span class="font-medium text-600 text-md text-center">Déposez ou sélectionnez des fichiers</span>
               </div>
-            </template>
-            <template #empty>
-              <div v-if="uploadFiles.length < 1" @click="onChooseUploadFiles" class="w-full py-3" :style="{ cursor: 'copy' }">
-                <div class="h-full flex flex-column justify-content-center align-items-center">
-                  <i class="pi pi-upload text-900 text-2xl mb-3"></i>
-                  <span class="font-bold text-900 text-xl mb-3">Upload Files</span>
-                  <span class="font-medium text-600 text-md text-center">Drop or select files</span>
-                </div>
-              </div>
-            </template>
+            </div>
+          </template>
           </FileUpload>
         </div>
       </div>
     </div>
+
+    <!-- Section pour afficher les dossiers, sous-dossiers et fichiers -->
     <div class="col-12 md:col-7 xl:col-9">
       <div class="card">
-        <div class="text-900 text-xl font-semibold mb-3">Documents de stages</div>
+        <div class="text-900 text-xl font-semibold mb-3">Dossiers</div>
         <div class="grid">
-          <div v-for="(folder, i) in folders" :key="i" class="col-12 md:col-6 xl:col-4">
+          <!-- Afficher les dossiers principaux -->
+          <div v-for="(folder, i) in folders" :key="i" class="col-12 md:col-6 xl:col-4" @click="onFolderClick(folder)">
             <div class="p-3 border-1 surface-border flex align-items-center justify-content-between hover:surface-100 cursor-pointer border-round">
               <div class="flex align-items-center">
                 <i class="text-2xl mr-3" :class="folder.icon"></i>
@@ -64,112 +138,32 @@
             </div>
           </div>
         </div>
+
+        <!-- Afficher les sous-dossiers si un dossier principal est sélectionné -->
+        <div v-if="subFolders.length > 0" class="mt-4">
+          <h3 class="text-lg font-semibold">Sous-dossiers</h3>
+          <div class="grid">
+            <div v-for="(subFolder, i) in subFolders" :key="i" class="col-12 md:col-6 xl:col-4" @click="onFolderClick(subFolder)">
+              <div class="p-3 border-1 surface-border flex align-items-center justify-content-between hover:surface-100 cursor-pointer border-round">
+                <div class="flex align-items-center">
+                  <i class="pi pi-folder text-2xl mr-3"></i>
+                  <span class="text-900 text-lg font-medium">{{ subFolder.name }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Afficher les fichiers dans le dossier sélectionné -->
+        <div v-if="files.length > 0" class="mt-4">
+          <h3 class="text-lg font-semibold">Fichiers dans {{ selectedFolder.name }}</h3>
+          <ul>
+            <li v-for="file in files" :key="file.name">
+              <a :href="file.url" target="_blank">{{ file.name }}</a>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref } from 'vue';
-import { FileService } from '@/service/FileService';
-
-const metrics = ref([]);
-const files = ref([]);
-const folders = ref([]);
-const chartData = ref([]);
-const chartOptions = ref({});
-const chartPlugins = ref({});
-const menuItems = ref([
-  { label: 'View', icon: 'pi pi-search' },
-  { label: 'Refresh', icon: 'pi pi-refresh' }
-]);
-const menuRef = ref(null);
-const fileUploaderRef = ref(null);
-const uploadFiles = ref([]);
-const fileService = new FileService();
-fileService.getFiles().then((data) => (files.value = data));
-fileService.getMetrics().then((data) => (metrics.value = data));
-fileService.getFoldersLarge().then((data) => (folders.value = data));
-
-const documentStyle = getComputedStyle(document.documentElement);
-const textColor = documentStyle.getPropertyValue('--text-color');
-
-chartPlugins.value = [
-  {
-    beforeDraw: function (chart) {
-      let ctx = chart.ctx;
-      let width = chart.width;
-      let height = chart.height;
-      let fontSize = 1.5;
-      let oldFill = ctx.fillStyle;
-
-      ctx.restore();
-      ctx.font = fontSize + 'rem sans-serif';
-      ctx.textBaseline = 'middle';
-
-      let text = 'Free Space';
-      let text2 = 50 + 'GB / ' + 80 + 'GB';
-      let textX = Math.round((width - ctx.measureText(text).width) / 2);
-      let textY = (height + chart.chartArea.top) / 2.25;
-
-      let text2X = Math.round((width - ctx.measureText(text).width) / 2.1);
-      let text2Y = (height + chart.chartArea.top) / 1.75;
-
-      ctx.fillStyle = chart.config.data.datasets[0].backgroundColor[0];
-      ctx.fillText(text, textX, textY);
-      ctx.fillText(text2, text2X, text2Y);
-      ctx.fillStyle = oldFill;
-      ctx.save();
-    }
-  }
-];
-chartData.value = {
-  datasets: [
-    {
-      data: [300, 100],
-      backgroundColor: [documentStyle.getPropertyValue('--primary-600'), documentStyle.getPropertyValue('--primary-100')],
-      hoverBackgroundColor: [documentStyle.getPropertyValue('--primary-700'), documentStyle.getPropertyValue('--primary-200')],
-      borderColor: 'transparent',
-      fill: true
-    }
-  ]
-};
-
-chartOptions.value = {
-  animation: {
-    duration: 0
-  },
-  responsive: true,
-  maintainAspectRatio: false,
-  cutout: '90%',
-  plugins: {
-    legend: {
-      labels: {
-        color: textColor
-      }
-    }
-  }
-};
-
-const toggleMenuItem = (event, index) => {
-  menuRef.value[index].toggle(event);
-};
-
-const onChooseUploadFiles = () => {
-  fileUploaderRef.value.choose();
-};
-const onSelectedFiles = (event) => {
-  uploadFiles.value = event.files;
-};
-const onRemoveFile = (removeFile) => {
-  uploadFiles.value = uploadFiles.value.filter((file) => file.name !== removeFile.name);
-};
-</script>
-
-<style scoped lang="scss">
-.remove-file-wrapper:hover {
-  .remove-button {
-    display: flex !important;
-  }
-}
-</style>

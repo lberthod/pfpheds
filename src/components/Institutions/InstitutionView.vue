@@ -60,11 +60,14 @@
                   <div v-else>
                     <p class="card-text">Aucun praticien.ne formateur.trice.s disponible.</p>
                   </div>
+
+                  <!-- Bouton pour ouvrir le PDF -->
+                  <Button v-if="pdfUrl" label="Ouvrir le PDF" icon="pi pi-file-pdf" @click="openPDF" class="p-button-raised p-button-danger mt-4" />
+                  <p v-else>Aucun PDF disponible pour cette institution.</p> <!-- Message alternatif -->
                 </div>
               </div>
             </div>
           </TabPanel>
-
         </TabView>
       </div>
 
@@ -78,15 +81,15 @@
 </template>
 
 <script>
-import { db } from '../../../firebase.js';
+import { db, storage } from '../../../firebase.js';
 import { ref as firebaseRef, onValue } from "firebase/database";
 import { getDownloadURL, ref as storageRef } from 'firebase/storage';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css'; // Ensure Leaflet's CSS is included
 import Navbar from '@/components/Utils/Navbar.vue';
 import Footer from '@/components/Utils/Footer.vue';
-import Button from '@/views/uikit/Button.vue'
-import { ref } from 'vue'
+import Button from '@/views/uikit/Button.vue';
+import { ref } from 'vue';
 
 const liked = ref(false);
 
@@ -101,7 +104,8 @@ export default {
     return {
       institutionDetails: null,
       map: null,
-      marker: null
+      marker: null,
+      pdfUrl: null, // URL for the PDF file
     };
   },
   mounted() {
@@ -132,10 +136,33 @@ export default {
 
           // Initialize map if coordinates are available
           this.initMapIfNeeded();
+
+          // Fetch the PDF file if it exists in the institution details
+          if (data.pdfPath) {
+            this.fetchPDF(data.pdfPath);
+          } else {
+            console.log('No PDF path found in the institution data');
+          }
         } else {
           this.$router.push({ name: 'Error404' });
         }
       });
+    },
+    fetchPDF(pdfPath) {
+      const pdfRef = storageRef(storage, pdfPath);
+      getDownloadURL(pdfRef)
+        .then((url) => {
+          this.pdfUrl = url;
+          console.log('PDF URL fetched:', this.pdfUrl); // Log the fetched URL
+        })
+        .catch((error) => {
+          console.error('Erreur lors de la récupération du PDF :', error);
+        });
+    },
+    openPDF() {
+      if (this.pdfUrl) {
+        window.open(this.pdfUrl, '_blank');
+      }
     },
     initMapIfNeeded() {
       if (this.institutionDetails && this.institutionDetails.Latitude && this.institutionDetails.Longitude) {

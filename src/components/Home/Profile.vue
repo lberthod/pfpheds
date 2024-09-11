@@ -5,7 +5,7 @@
         <div class="flex flex-column h-full bg-primary-500 flex-shrink-0 select-none">
           <div class="flex align-items-center justify-content-center flex-shrink-0 bg-primary-500" style="height:60px">
             <a href="/">
-            <img :src="logo" alt="Image" height="30"/>
+              <img :src="logo" alt="Image" height="30"/>
             </a>
           </div>
           <div class="overflow-y-auto mt-3">
@@ -53,9 +53,11 @@
   <AppDarkAndLightMode />
 </template>
 
+
 <script>
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ref, reactive, onMounted } from 'vue';
+import { getStorage, ref as storageRef, getDownloadURL } from "firebase/storage";
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import ProfileInfo from '@/components/UserProfile/ProfileInfo.vue'
@@ -107,7 +109,7 @@ export default {
     });
 
     const logo = '../../../public/assets/images/hespicto.png';
-    const userAvatar = ref('../../../public/assets/images/avatar/avatar99.png');
+    const userAvatar = ref('../../../public/assets/images/avatar/01.jpg'); // URL par défaut si aucune photo n'est trouvée
 
     const toggleSidebar = () => {
       // Logique pour basculer la barre latérale
@@ -115,6 +117,20 @@ export default {
 
     const toggleTopMenu = () => {
       // Logique pour basculer le menu supérieur
+    };
+
+    // Méthode pour récupérer l'URL de la photo de profil depuis Firebase Storage
+    const fetchProfilePhotoURL = async (uid) => {
+      const storage = getStorage();
+      const avatarRef = storageRef(storage, `users/${uid}/profile-picture.jpg`); // Chemin où la photo de profil est stockée
+
+      try {
+        const url = await getDownloadURL(avatarRef);
+        userAvatar.value = url; // Mettre à jour l'URL de l'avatar avec celle de Firebase Storage
+      } catch (error) {
+        console.error("Erreur lors de la récupération de l'URL de la photo de profil:", error);
+        // Si une erreur survient, conserver l'avatar par défaut
+      }
     };
 
     onMounted(() => {
@@ -125,6 +141,9 @@ export default {
           user.email = currentUser.email;
           user.photoURL = currentUser.photoURL;
           user.uid = currentUser.uid;
+
+          // Récupérer l'URL de la photo de profil depuis Firebase Storage
+          fetchProfilePhotoURL(currentUser.uid);
         }
       });
     });
@@ -145,6 +164,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 /* Vos styles spécifiques au composant ici */

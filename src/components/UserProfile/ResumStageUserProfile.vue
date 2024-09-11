@@ -67,6 +67,7 @@ const userProfile = ref(null);
 const loading = ref(true);
 const globalFilter = ref('');
 
+// Fonction pour récupérer les données du profil utilisateur
 const fetchUserProfile = async (email) => {
   const db = getDatabase();
   const studentsRef = dbRef(db, 'students');
@@ -93,6 +94,7 @@ const fetchUserProfile = async (email) => {
   console.log('Profil utilisateur non trouvé');
 };
 
+// Fonction pour ajouter les infos des stages à la liste des stages
 const addAllPFPInfoToStages = (student, studentKey) => {
   const pfpInfos = ['PFP1_info', 'PFP2_info', 'PFP3_info', 'PFP4_info'];
   pfpInfos.forEach((pfp) => {
@@ -109,6 +111,7 @@ const addAllPFPInfoToStages = (student, studentKey) => {
   console.log('Stages après ajout des infos PFP :', stages.value);
 };
 
+// Fonction pour extraire les secteurs (détails des stages)
 const getSecteurs = (info) => {
   const secteurs = [];
   if (info.NEUROGER === 1) secteurs.push('NEUROGER');
@@ -120,14 +123,17 @@ const getSecteurs = (info) => {
   return secteurs.join(', ');
 };
 
+// Template pour l'affichage des secteurs dans la table
 const secteurTemplate = (rowData) => {
   return rowData.Secteur;
 };
 
+// Gestion des icônes pour les champs de validation
 const getClass = (value) => {
   return value >= 1 ? 'text-green-500' : 'text-red-500';
 };
 
+// Formatage des colonnes (icônes ✔️/❌)
 const formatColumn = (field) => {
   return (rowData) => {
     const value = rowData[field];
@@ -139,6 +145,7 @@ const formatValue = (value) => {
   return value >= 1 ? `✔️ ${value}` : `❌ ${value}`;
 };
 
+// Montée en charge des données du profil et des stages
 onMounted(async () => {
   const auth = getAuth();
   onAuthStateChanged(auth, async (user) => {
