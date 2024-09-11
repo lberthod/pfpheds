@@ -3,12 +3,15 @@
     <Navbar />
     <UserProfile />
     <div class="container-fluid mt-4">
+      <!-- Section pour la validation -->
       <div v-if="currentStudent && selectedPFP && selectedClass" class="table-responsive mt-4">
         <div v-if="validationMessage" class="mt-4 text-center">
           <h4>Validation</h4>
-          <p> A besoin de : {{ validationMessage }}</p>
+          <p>A besoin de : {{ validationMessage }}</p>
         </div>
       </div>
+
+      <!-- Table affichant toutes les places de stages disponibles -->
       <div v-if="selectedPFP && selectedClass" class="table-responsive mt-4">
         <div class="d-flex justify-content-center">
           <h3 class="mb-3 text-center">Toutes les places de stages</h3>
@@ -36,15 +39,15 @@
                 <td>{{ stage.Domaine }}</td>
                 <td v-if="Boolean(stage.FR) == true">&#9989;</td>
                 <td v-else>&#10060;</td>
-                <td v-if="Boolean(stage.DE) == true">&#9989;</td>
+                <td v-if="Boolean(stage.ALL) == true">&#9989;</td>
                 <td v-else>&#10060;</td>
                 <td v-if="Boolean(stage.AIGU) == true">&#9989;</td>
                 <td v-else>&#10060;</td>
-                <td v-if="Boolean(stage.REHAB)== true">&#9989;</td>
+                <td v-if="Boolean(stage.REHAB) == true">&#9989;</td>
                 <td v-else>&#10060;</td>
-                <td v-if="Boolean(stage.MSQ) == true">&#9989; </td>
-                <td v-else>&#10060; </td>
-                <td v-if="Boolean(stage.SYSINT) == true">&#9989; </td>
+                <td v-if="Boolean(stage.MSQ) == true">&#9989;</td>
+                <td v-else>&#10060;</td>
+                <td v-if="Boolean(stage.SYSINT) == true">&#9989;</td>
                 <td v-else>&#10060;</td>
                 <td v-if="Boolean(stage.NEUROGER) == true">&#9989;</td>
                 <td v-else>&#10060;</td>
@@ -59,7 +62,7 @@
         </div>
       </div>
 
-      <!-- Section to display voting result -->
+      <!-- Section pour afficher le résultat du vote -->
       <div v-if="voteResult" class="mt-4 text-center">
         <h4>Choix du Vote</h4>
         <p>Stage Sélectionné : {{ voteResult.selectedStageName }}</p>
@@ -70,7 +73,7 @@
       <div class="mt-4 text-center">
         <button class="btn btn-primary" @click="submitVotes">Voter</button>
       </div>
-      <br> <br> <br> <br>
+      <br><br><br><br>
     </div>
   </div>
 </template>
@@ -188,16 +191,16 @@ export default {
                 // Add each place only once, even if repeatCount is greater than 1
                 this.stages.push({
                   Identifiant: place.IDPlace,
-                  NomPlace: institution.Name ,
+                  NomPlace: institution.Name || place.NomPlace,
                   Lieu: institution.Lieu || '',
                   Domaine: place.NomPlace,
                   FR: place.FR,
-                  DE: place.DE,
+                  ALL: place.DE,
                   AIGU: place.AIGU,
                   REHAB: place.REHAB,
                   MSQ: place.MSQ,
                   SYSINT: place.SYSINT,
-              NEUROGER: place['NEURO-GER'], // Using bracket notation to access the property
+                  NEUROGER: place['NEURO-GER'], // Using bracket notation to access the property
                   AMBU: place.AMBU,
                   takenBy: place.takenBy || null,
                   NomP: `${institution.Name} - ${place.NomPlace} - ${institution.Lieu}`
@@ -284,19 +287,21 @@ export default {
     checkValidation() {
       if (!this.currentStudent) return;
 
-      const { FR, ALL, AMBU, MSQ, SYSINT, NEUROGER, REHAB, AIGU } = this.currentStudent;
+      const { fr, all, AMBU, MSQ, SYSINT, NEUROGER, REHAB, AIGU } = this.currentStudent;
 
       this.missingFields = [];
       this.languageIssue = null;
 
-      if (FR == "0" && ALL == "0" && AMBU == "0" && MSQ == "0" && SYSINT == "0" && NEUROGER == "0" && REHAB == "0" && AIGU == "0") {
+      if (fr == "0" && all == "0" && AMBU == "0" && MSQ == "0" && SYSINT == "0" && NEUROGER == "0" && REHAB == "0" && AIGU == "0") {
         // All fields are 0, all checkboxes usable
         this.validationMessage = "Toutes les options sont disponibles";
         return;
       }
+      if (fr == "0") this.languageIssue = "FR";
+      if (all == "0") this.languageIssue = "ALL";
 
-      if (FR == "0") this.languageIssue = "FR";
-      if (ALL == "0") this.languageIssue = "ALL";
+      if (fr == "0") this.missingFields.push("FR");
+      if (all == "0") this.missingFields.push("ALL");
 
       if (AMBU == "0") this.missingFields.push("AMBU");
       if (MSQ == "0") this.missingFields.push("MSQ");
@@ -315,6 +320,7 @@ export default {
     },
 
     isStageVisible(stage) {
+      console.log(stage.ALL);
       // Check if the stage is already taken by another student
       if (this.takenStages.has(stage.Identifiant)) {
         return false;
@@ -325,10 +331,12 @@ export default {
       }
 
       if (this.languageIssue) {
-        if (this.languageIssue === 'FR' && stage.FR === 'true') {
+     
+        if (this.languageIssue === 'FR' && stage.FR === "true") {
           return true;
+
         }
-        if (this.languageIssue == 'ALL' && stage.ALL === true) {
+        if (this.languageIssue === 'ALL' && stage.ALL === "true") {
           return true;
         }
         return false;
@@ -359,79 +367,12 @@ export default {
 </script>
 
 <style scoped>
-.search-elements {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.class-selection select,
-.pfp-selection select,
-.search-input {
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.table-dark-gray {
-  background-color: #343a40;
-  color: #fff;
-}
-
-.table-dark-gray th,
-.table-dark-gray td {
-  border-color: #454d55;
-}
-
-.table-striped th,
-.table-striped td {
-  text-align: center;
-  vertical-align: middle;
-}
-
-.table-responsive {
-  overflow-x: auto;
-}
-
-.table-hover tbody tr:hover {
-  background-color: #f1f1f1;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  border-color: #007bff;
-  margin-top: 10px;
-}
-
-.btn-primary:hover {
-  background-color: #0056b3;
-  border-color: #004085;
-}
-
-.text-center {
-  text-align: center;
-}
-
-.mt-3 {
-  margin-top: 1rem !important;
-}
-
-.mt-4 {
-  margin-top: 1.5rem !important;
-}
-
-.text-danger {
-  color: red !important;
-}
-
-.table-responsive {
-  display: flex;
-  justify-content: center;
-}
-
+/* Style de base */
 .table-striped {
   width: 80%;
   margin: 0 auto;
+}
+.text-center {
+  text-align: center;
 }
 </style>
