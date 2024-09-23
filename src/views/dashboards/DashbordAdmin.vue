@@ -339,7 +339,8 @@ const supprimerInstitution = (institutionId) => {
                   </div>
                 </div>
                 <div class="w-6 text-right">
-                  <Knob v-model="knobValue" valueTemplate="90%" readonly :strokeWidth="2" :size="90" class="-mt-5"></Knob>
+                  <Knob v-model="knobValue" valueTemplate="90%" readonly :strokeWidth="2" :size="90"
+                        class="-mt-5"></Knob>
                 </div>
               </div>
             </div>
@@ -350,7 +351,8 @@ const supprimerInstitution = (institutionId) => {
             <div class="card h-full">
               <div class="flex align-items-start justify-content-between mb-6">
                 <span class="text-900 text-xl font-semibold">Stats PFP</span>
-                <Dropdown :options="weeks" v-model="selectedWeek" class="w-10rem" optionLabel="label" @change="onWeekChange"></Dropdown>
+                <Dropdown :options="weeks" v-model="selectedWeek" class="w-10rem" optionLabel="label"
+                          @change="onWeekChange"></Dropdown>
               </div>
               <Chart type="bar" :height="300" :data="barData" :options="barOptions"></Chart>
             </div>
@@ -370,7 +372,9 @@ const supprimerInstitution = (institutionId) => {
               <div class="flex flex-column md:flex-row md:align-items-start md:justify-content-between mb-3">
                 <div class="text-900 text-xl font-semibold mb-3 md:mb-0">Institutions</div>
               </div>
-              <DataTable ref="salesTableRef" :value="filteredInstitutions" dataKey="id" paginator :rows="10" responsiveLayout="scroll" v-model:filters="filters" filterDisplay="menu" :loading="loading" :globalFilterFields="['Name', 'Street', 'Lieu', 'Canton', 'URL']" showGridlines>
+              <DataTable ref="salesTableRef" :value="filteredInstitutions" dataKey="id" paginator :rows="10"
+                         responsiveLayout="scroll" v-model:filters="filters" filterDisplay="menu" :loading="loading"
+                         :globalFilterFields="['Name', 'Street', 'Lieu', 'Canton', 'URL']" showGridlines>
                 <template #header>
                   <div class="flex justify-content-between flex-column sm:flex-row">
                     <IconField iconPosition="left">
@@ -379,14 +383,15 @@ const supprimerInstitution = (institutionId) => {
                     </IconField>
                   </div>
                 </template>
-                <template #empty> Aucun institution trouvée. </template>
-                <template #loading> Chargement des données des institutions. Veuillez patienter. </template>
+                <template #empty> Aucun institution trouvée.</template>
+                <template #loading> Chargement des données des institutions. Veuillez patienter.</template>
                 <Column field="Name" header="Nom de l'institution" style="min-width: 12rem" class="text-center">
                   <template #body="{ data }">
                     {{ data.Name }}
                   </template>
                   <template #filter="{ filterModel }">
-                    <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Rechercher par nom" />
+                    <InputText type="text" v-model="filterModel.value" class="p-column-filter"
+                               placeholder="Rechercher par nom" />
                   </template>
                 </Column>
                 <Column field="Street" header="Rue" style="min-width: 12rem" class="text-center">
@@ -394,7 +399,8 @@ const supprimerInstitution = (institutionId) => {
                     {{ data.Street }}
                   </template>
                   <template #filter="{ filterModel }">
-                    <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Rechercher par rue" />
+                    <InputText type="text" v-model="filterModel.value" class="p-column-filter"
+                               placeholder="Rechercher par rue" />
                   </template>
                 </Column>
                 <Column field="Lieu" header="Lieu" style="min-width: 12rem" class="text-center">
@@ -402,7 +408,8 @@ const supprimerInstitution = (institutionId) => {
                     {{ data.Lieu }}
                   </template>
                   <template #filter="{ filterModel }">
-                    <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Rechercher par lieu" />
+                    <InputText type="text" v-model="filterModel.value" class="p-column-filter"
+                               placeholder="Rechercher par lieu" />
                   </template>
                 </Column>
                 <Column field="Canton" header="Canton" style="min-width: 12rem" class="text-center">
@@ -410,7 +417,8 @@ const supprimerInstitution = (institutionId) => {
                     {{ data.Canton }}
                   </template>
                   <template #filter="{ filterModel }">
-                    <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Rechercher par canton" />
+                    <InputText type="text" v-model="filterModel.value" class="p-column-filter"
+                               placeholder="Rechercher par canton" />
                   </template>
                 </Column>
               </DataTable>
@@ -423,89 +431,95 @@ const supprimerInstitution = (institutionId) => {
               <div class="text-900 text-xl font-semibold mb-3">Étudiants</div>
               <ul class="list-none p-0 m-0">
 
-                  <DataTable
-                    :value="filteredEtudiants"
-                    :paginator="true"
-                    :rows="10"
-                    dataKey="id"
-                    :rowHover="true"
-                    v-model:filters="filters"
-                    filterDisplay="menu"
-                    :loading="loading"
-                    :globalFilterFields="['Nom', 'Prenom', 'Classe', 'responsableDeStage', 'Email']"
-                    showGridlines
-                  >
-                    <template #header>
-                      <div class="flex justify-content-between flex-column sm:flex-row">
-                        <IconField iconPosition="left">
-                          <InputIcon class="pi pi-search" />
-                          <InputText v-model="globalFilter" placeholder="Recherche" style="width: 100%" />
-                        </IconField>
-                      </div>
+                <DataTable
+                  :value="filteredEtudiants"
+                  :paginator="true"
+                  :rows="10"
+                  dataKey="id"
+                  :rowHover="true"
+                  v-model:filters="filters"
+                  filterDisplay="menu"
+                  :loading="loading"
+                  :globalFilterFields="['Nom', 'Prenom', 'Classe', 'responsableDeStage', 'Email']"
+                  showGridlines
+                >
+                  <template #header>
+                    <div class="flex justify-content-between flex-column sm:flex-row">
+                      <IconField iconPosition="left">
+                        <InputIcon class="pi pi-search" />
+                        <InputText v-model="globalFilter" placeholder="Recherche" style="width: 100%" />
+                      </IconField>
+                    </div>
+                  </template>
+                  <template #empty> Aucun étudiants trouvés.</template>
+                  <template #loading> Loading student data. Please wait.</template>
+                  <Column field="Nom" header="Nom" style="min-width: 12rem" class="text-center">
+                    <template #body="{ data }">
+                      {{ data.Nom }}
                     </template>
-                    <template #empty> Aucun étudiants trouvés. </template>
-                    <template #loading> Loading student data. Please wait. </template>
-                    <Column field="Nom" header="Nom" style="min-width: 12rem" class="text-center">
-                      <template #body="{ data }">
-                        {{ data.Nom }}
-                      </template>
-                      <template #filter="{ filterModel }">
-                        <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Search by name" />
-                      </template>
-                    </Column>
-                    <Column field="Prenom" header="Prénom" style="min-width: 12rem" class="text-center">
-                      <template #body="{ data }">
-                        {{ data.Prenom }}
-                      </template>
-                      <template #filter="{ filterModel }">
-                        <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Search by first name" />
-                      </template>
-                    </Column>
-                    <Column field="Classe" header="Classe" style="min-width: 12rem" class="text-center">
-                      <template #body="{ data }">
-                        {{ data.Classe }}
-                      </template>
-                      <template #filter="{ filterModel }">
-                        <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Search by class" />
-                      </template>
-                      <template #filterclear="{ filterCallback }">
-                        <Button type="button" icon="pi pi-times" @click="filterCallback()" severity="secondary"></Button>
-                      </template>
-                      <template #filterapply="{ filterCallback }">
-                        <Button type="button" icon="pi pi-check" @click="filterCallback()" severity="success"></Button>
-                      </template>
-                    </Column>
-                    <Column field="responsableDeStage" header="Responsable de Stage" style="min-width: 12rem" class="text-center">
-                      <template #body="{ data }">
-                        {{ data.responsableDeStage }}
-                      </template>
-                      <template #filter="{ filterModel }">
-                        <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Search by supervisor" />
-                      </template>
-                    </Column>
-                    <Column field="Email" header="E-Mail" style="min-width: 12rem">
-                      <template #body="{ data }">
-                        {{ data.Email }}
-                      </template>
-                      <template #filter="{ filterModel }">
-                        <InputText type="text" v-model="filterModel.value" class="p-column-filter" placeholder="Search by email" />
-                      </template>
-                    </Column>
-                    <Column field="SAE" header="SAE" style="min-width: 8rem" class="text-center">
-                      <template #body="{ data }">
-                        <input type="checkbox" :checked="data.SAE" disabled />
-                      </template>
-                      <template #filter="{ filterModel }">
-                        <TriStateCheckbox v-model="filterModel.value" />
-                      </template>
-                    </Column>
-                    <Column header="Action" style="min-width: 12rem" class="text-center">
-                      <template #body="{ data }">
-                        <Button label="Modifier" class="mb-2 mr-2" />
-                        <Button label="Supprimer" class="mb-2 mr-2" @click="deleteStudent(data.id)" />
-                      </template>
-                    </Column>
-                  </DataTable>
+                    <template #filter="{ filterModel }">
+                      <InputText type="text" v-model="filterModel.value" class="p-column-filter"
+                                 placeholder="Search by name" />
+                    </template>
+                  </Column>
+                  <Column field="Prenom" header="Prénom" style="min-width: 12rem" class="text-center">
+                    <template #body="{ data }">
+                      {{ data.Prenom }}
+                    </template>
+                    <template #filter="{ filterModel }">
+                      <InputText type="text" v-model="filterModel.value" class="p-column-filter"
+                                 placeholder="Search by first name" />
+                    </template>
+                  </Column>
+                  <Column field="Classe" header="Classe" style="min-width: 12rem" class="text-center">
+                    <template #body="{ data }">
+                      {{ data.Classe }}
+                    </template>
+                    <template #filter="{ filterModel }">
+                      <InputText type="text" v-model="filterModel.value" class="p-column-filter"
+                                 placeholder="Search by class" />
+                    </template>
+                    <template #filterclear="{ filterCallback }">
+                      <Button type="button" icon="pi pi-times" @click="filterCallback()" severity="secondary"></Button>
+                    </template>
+                    <template #filterapply="{ filterCallback }">
+                      <Button type="button" icon="pi pi-check" @click="filterCallback()" severity="success"></Button>
+                    </template>
+                  </Column>
+                  <Column field="responsableDeStage" header="Responsable de Stage" style="min-width: 12rem"
+                          class="text-center">
+                    <template #body="{ data }">
+                      {{ data.responsableDeStage }}
+                    </template>
+                    <template #filter="{ filterModel }">
+                      <InputText type="text" v-model="filterModel.value" class="p-column-filter"
+                                 placeholder="Search by supervisor" />
+                    </template>
+                  </Column>
+                  <Column field="Email" header="E-Mail" style="min-width: 12rem">
+                    <template #body="{ data }">
+                      {{ data.Email }}
+                    </template>
+                    <template #filter="{ filterModel }">
+                      <InputText type="text" v-model="filterModel.value" class="p-column-filter"
+                                 placeholder="Search by email" />
+                    </template>
+                  </Column>
+                  <Column field="SAE" header="SAE" style="min-width: 8rem" class="text-center">
+                    <template #body="{ data }">
+                      <input type="checkbox" :checked="data.SAE" disabled />
+                    </template>
+                    <template #filter="{ filterModel }">
+                      <TriStateCheckbox v-model="filterModel.value" />
+                    </template>
+                  </Column>
+                  <Column header="Action" style="min-width: 12rem" class="text-center">
+                    <template #body="{ data }">
+                      <Button label="Modifier" class="mb-2 mr-2" />
+                      <Button label="Supprimer" class="mb-2 mr-2" @click="deleteStudent(data.id)" />
+                    </template>
+                  </Column>
+                </DataTable>
 
               </ul>
             </div>

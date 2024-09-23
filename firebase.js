@@ -5,13 +5,13 @@ import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyCovk3J5xoTiDojgrWquSqpSNWvdgJIRmc",
-    authDomain: "fpformationheds.firebaseapp.com",
-    databaseURL: "https://fpformationheds-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "fpformationheds",
-    storageBucket: "fpformationheds.appspot.com",
-    messagingSenderId: "695199918094",
-    appId: "1:695199918094:web:4504dc1940316e17f0f45f"
+    apiKey: "AIzaSyDV0Fbiu8ds-WLLG9WrH4eNqTfWLe84_8g",
+    authDomain: "pfpheds.firebaseapp.com",
+    databaseURL: "https://pfpheds-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "pfpheds",
+    storageBucket: "pfpheds.appspot.com",
+    messagingSenderId: "985064549276",
+    appId: "1:985064549276:web:732edc591f04477e8eb659"
 };
 
 // Initialize Firebase

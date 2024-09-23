@@ -13,14 +13,14 @@
             <p><strong>Remarque :</strong> {{ userProfile.Remarque }}</p>
             <h5>Détails</h5>
             <DataTable :value="[userProfile]" tableStyle="min-width: 50rem">
-              <Column field="fr" header="FR" :body="formatColumn('FR')"></Column>
-              <Column field="all" header="ALL" :body="formatColumn('ALL')"></Column>
-              <Column field="AMBU" header="AMBU" :body="formatColumn('AMBU')"></Column>
-              <Column field="AIGU" header="AIGU" :body="formatColumn('AIGU')"></Column>
               <Column field="MSQ" header="MSQ" :body="formatColumn('MSQ')"></Column>
               <Column field="SYSINT" header="SYSINT" :body="formatColumn('SYSINT')"></Column>
-              <Column field="NEUROGER" header="NEUROGER" :body="formatColumn('NEUROGER')"></Column>
+              <Column field="NEUROGER" header="NEURO_GER" :body="formatColumn('NEUROGER')"></Column>
+              <Column field="AIGU" header="AIGU" :body="formatColumn('AIGU')"></Column>
               <Column field="REHAB" header="REHAB" :body="formatColumn('REHAB')"></Column>
+              <Column field="AMBU" header="AMBU" :body="formatColumn('AMBU')"></Column>
+              <Column field="fr" header="FR" :body="formatColumn('FR')"></Column>
+              <Column field="all" header="ALL" :body="formatColumn('ALL')"></Column>
             </DataTable>
           </div>
           <div v-else>
