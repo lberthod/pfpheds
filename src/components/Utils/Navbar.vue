@@ -44,6 +44,17 @@
               />
             </li>
 
+
+            <li v-if="user" class="mx-5">
+              <ButtonNavbar
+                icon="pi pi-calendar"
+                :bgColor="'var(--surface-overlay)'"
+                :hoverBgColor="'var(--surface-hover)'"
+                :iconColor="'var(--primary-color)'"
+                @click="navigateTo('/planning')"
+              />
+            </li>
+
             <li v-if="user && hasAdminAccess" class="mx-5">
               <ButtonNavbar
                 icon="pi pi-file-edit"

@@ -50,9 +50,43 @@ import NewsFeed from '@/components/Social/NewsFeed.vue';
 import UserProfile from '@/components/Social/UserProfile.vue';
 import HashtagPage from '@/components/Social/HashtagPage.vue';
 import MentionGroupPage from '@/components/Social/MentionGroupPage.vue';
-
+import PlanningView from '@/components/Planning/PlanningView.vue';
+import AdminDashboard from '@/components/Planning/AdminDashboard.vue';
+import TeacherDashboard from '@/components/Planning/TeacherDashboard.vue';
+import RMModulePage from '@/components/Planning/RMModulePage.vue';
+import PlanningPreview from '@/components/Planning/PlanningPreview.vue';
+import FeuilleEnseignant from '@/components/Planning/FeuilleEnseignant.vue';
 // Define your routes
 const routes = [
+  { path: '/planning', component: PlanningView, name: 'PlanningView',   props: true   }, // Fil d'actualité
+
+  {
+    path: '/teacher/:id',
+    name: 'FeuilleEnseignant',
+    component: FeuilleEnseignant,
+    props: true // Permet de passer les paramètres de route comme props
+  },
+  {
+    path: '/admin-dashboard',
+    name: 'AdminDashboard',
+    component: AdminDashboard,
+  },
+  {
+    path: '/teacher-dashboard',
+    name: 'TeacherDashboard',
+    component: TeacherDashboard,
+  },
+  {
+    path: '/rm-module-page',
+    name: 'RMModulePage',
+    component: RMModulePage,
+  },
+  {
+    path: '/planning-preview',
+    name: 'PlanningPreview',
+    component: PlanningPreview,
+  },
+
   { path: '/newsfeed', component: NewsFeed, name: 'NewsFeed',   props: true   }, // Fil d'actualité
   { path: '/profile/:id', component: UserProfile, name: 'UserProfile', props: true }, // Profil de l'utilisateur
   { path: '/mention/:group', component: MentionGroupPage, name: 'MentionGroupPage', props: true, meta: { requiresAuth: true, requiredRole: true }},
