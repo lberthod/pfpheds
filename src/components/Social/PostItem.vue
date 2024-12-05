@@ -40,7 +40,7 @@
                 :src="mediaUrl"
                 class="media-item"
                 controls
-                loop
+                muted
                 playsinline
               ></video>
             </template>
