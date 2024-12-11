@@ -11,6 +11,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.7.1",
     "@fullcalendar/core": "^6.1.8",
     "@fullcalendar/daygrid": "^6.1.8",
     "@fullcalendar/interaction": "^6.1.8",
@@ -20,6 +21,7 @@
     "csv-parser": "^3.0.0",
     "csv-stringify": "^6.5.0",
     "csv-writer": "^1.6.0",
+    "date-fns": "^4.0.0-beta.1",
     "firebase": "^10.6.0",
     "firebase-admin": "^11.10.1",
     "firebase-tools": "^13.0.1",

@@ -46,7 +46,7 @@ import Management_votation from '@/components/Dashboard/DashboardDetails/Managem
 import ManagementPlace from '@/components/Dashboard/DashboardDetails/Management_place.vue';
 import VotationLese from '@/components/Dashboard/DashboardDetails/VotationLese.vue';
 import LoginHome from '@/components/Utils/LoginHome.vue';
-import NewsFeed from '@/components/Social/NewsFeed.vue';
+import MainFeed from '@/components/Bibliotheque/Social/MainFeed.vue';
 import HashtagPage from '@/components/Social/HashtagPage.vue';
 import CommunityManagement from '@/components/Social/CommunityManagement.vue';
 import ManageOneCommunity from '@/components/Social/ManageOneCommunity.vue';
@@ -56,11 +56,48 @@ import DocumentsPFP from '@/components/Home/DocumentsPFP.vue'
 import Index from '@/views/apps/tasklist/Index.vue'
 import IndexChat from '@/views/apps/chat/IndexChat.vue'
 import CommunityInfo from '@/components/Social/CommunityInfo.vue'; // Import du composant Infos
-
+import PlanningView from '@/components/Planning/PlanningView.vue';
+import AdminDashboard from '@/components/Planning/AdminDashboard.vue';
+import TeacherDashboard from '@/components/Planning/TeacherDashboard.vue';
+import RMModulePage from '@/components/Planning/RMModulePage.vue';
+import PlanningPreview from '@/components/Planning/PlanningPreview.vue';
+import FeuilleEnseignant from '@/components/Planning/FeuilleEnseignant.vue';
 // Define your routes
 const routes = [
   { path: '/', component: LoginHome, name: 'LoginHome',   props: true   }, // Fil d'actualité
-  { path: '/feed', component: NewsFeed, name: 'NewsFeed',   props: true, meta: { requiresAuth: true } }, // Fil d'actualité
+  { path: '/feed', component: MainFeed, name: 'MainFeed',   props: true, meta: { requiresAuth: true } }, // Fil d'actualité
+
+  { path: '/planning', component: PlanningView, name: 'PlanningView',   props: true   }, // Fil d'actualité
+
+  {
+    path: '/teacher/:id',
+    name: 'FeuilleEnseignant',
+    component: FeuilleEnseignant,
+    props: true // Permet de passer les paramètres de route comme props
+  },
+  {
+    path: '/admin-dashboard',
+    name: 'AdminDashboard',
+    component: AdminDashboard,
+  },
+  {
+    path: '/teacher-dashboard',
+    name: 'TeacherDashboard',
+    component: TeacherDashboard,
+  },
+  {
+    path: '/rm-module-page',
+    name: 'RMModulePage',
+    component: RMModulePage,
+  },
+  {
+    path: '/planning-preview',
+    name: 'PlanningPreview',
+    component: PlanningPreview,
+  },
+
+  { path: '/newsfeed', component: MainFeed, name: 'NewsFeed',   props: true   }, // Fil d'actualité
+  //{ path: '/profile/:id', component: UserProfile, name: 'UserProfile', props: true }, // Profil de l'utilisateur
   { path: '/mention/:group', component: MentionGroupPage, name: 'MentionGroupPage', props: true, meta: { requiresAuth: true, requiredRole: true }},
   { path: '/hashtag/:hashtag', component: HashtagPage, name: 'HashtagPage', props: true, meta: { requiresAuth: true } },
   { path: '/home', component: HomePage, name: 'HomePage' },
