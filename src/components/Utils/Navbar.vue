@@ -67,7 +67,7 @@
               />
             </li>
 
-            <li v-if="user && hasAdminAccess" class="mx-3">
+             <li v-if="user && hasAdminAccess" class="mx-3">
               <ButtonNavbar
                 icon="pi pi-user-plus"
                 :bgColor="'var(--surface-overlay)'"
