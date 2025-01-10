@@ -15,120 +15,63 @@
 
         <!-- Menu principal (centre) -->
         <div class="flex-grow-1 flex justify-content-center">
-          <ul class="list-none p-3 md:p-0 m-0 flex md:align-items-center select-none flex-row md:flex-row cursor-pointer">
+          <ul
+            class="list-none p-3 md:p-0 m-0 flex md:align-items-center select-none flex-row md:flex-row cursor-pointer">
             <li class="mx-3">
-              <ButtonNavbar
-                icon="pi pi-home"
-                :bgColor="'var(--surface-overlay)'"
-                :hoverBgColor="'var(--surface-hover)'"
-                :iconColor="'var(--primary-color)'"
-                @click="navigateTo('/feed')"
-                title="Accueil"
-              />
+              <ButtonNavbar icon="pi pi-home" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
+                :iconColor="'var(--primary-color)'" @click="navigateTo('/feed')" title="Accueil" />
             </li>
-            <li v-if="user" class="mx-3">
-              <ButtonNavbar
-                icon="pi pi-bookmark"
-                :bgColor="'var(--surface-overlay)'"
-                :hoverBgColor="'var(--surface-hover)'"
-                :iconColor="'var(--primary-color)'"
-                @click="navigateTo('/institution')"
-                title="Institutions"
-              />
-            </li>
-            <li v-if="user" class="mx-3">
-              <ButtonNavbar
-                icon="pi pi-check"
-                :bgColor="'var(--surface-overlay)'"
-                :hoverBgColor="'var(--surface-hover)'"
-                :iconColor="'var(--primary-color)'"
-                @click="navigateTo('/votation')"
-                title="Votation"
-              />
-            </li>
-            <li v-if="user" class="mx-3">
-              <ButtonNavbar
-                icon="pi pi-map-marker"
-                :bgColor="'var(--surface-overlay)'"
-                :hoverBgColor="'var(--surface-hover)'"
-                :iconColor="'var(--primary-color)'"
-                @click="navigateTo('/map')"
-                title="Map"
-              />
+            <li v-if="user & hasAdminAccess" class="mx-3">
+              <ButtonNavbar icon="pi pi-bookmark" :bgColor="'var(--surface-overlay)'"
+                :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'"
+                @click="navigateTo('/institution')" title="Institutions" />
             </li>
             <li v-if="user && hasAdminAccess" class="mx-3">
-              <ButtonNavbar
-                icon="pi pi-user-plus"
-                :bgColor="'var(--surface-overlay)'"
-                :hoverBgColor="'var(--surface-hover)'"
-                :iconColor="'var(--primary-color)'"
-                @click="navigateTo('/admin')"
-                title="Admin"
-              />
+              <ButtonNavbar icon="pi pi-check" :bgColor="'var(--surface-overlay)'"
+                :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'"
+                @click="navigateTo('/votation')" title="Votation" />
+            </li>
+            <li v-if="user && hasAdminAccess" class="mx-3">
+              <ButtonNavbar icon="pi pi-map-marker" :bgColor="'var(--surface-overlay)'"
+                :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'" @click="navigateTo('/map')"
+                title="Map" />
+            </li>
+            <li v-if="user && hasOptions" class="mx-3">
+              <ButtonNavbar icon="pi pi-book" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
+                :iconColor="'var(--primary-color)'" @click="navigateTo('/education')" title="Admin" />
+            </li>
+
+            <li v-if="user && hasAdminAccess" class="mx-3">
+              <ButtonNavbar icon="pi pi-user-plus" :bgColor="'var(--surface-overlay)'"
+                :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'" @click="navigateTo('/admin')"
+                title="Admin" />
             </li>
           </ul>
         </div>
 
         <!-- Barre de recherche et autres boutons (droite) - inchangé -->
         <div class="flex items-center space-x-5 ml-auto">
-          <div class="flex items-center relative">
-            <input
-              v-if="showSearchBar"
-              v-model="searchQuery"
-              @keyup.enter="performSearch"
-              type="text"
-              class="search-input"
-              placeholder="Rechercher..."
-
-            />
-            <ButtonNavbar
-              icon="pi pi-search"
-              :bgColor="'var(--surface-overlay)'"
-              :hoverBgColor="'var(--surface-hover)'"
-              :iconColor="'var(--primary-color)'"
-              @click="toggleSearchBar"
-              title="Rechercher"
-            />
+          <div class="flex items-center relative" v-if="hasAdminAccess">
+            <input v-if="showSearchBar" v-model="searchQuery" @keyup.enter="performSearch" type="text"
+              class="search-input" placeholder="Rechercher..." />
+            <ButtonNavbar icon="pi pi-search" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
+              :iconColor="'var(--primary-color)'" @click="toggleSearchBar" title="Rechercher" />
           </div>
 
           <!-- Message -->
-          <ButtonNavbar
-            v-if="user"
-            icon="pi pi-inbox"
-            :bgColor="'var(--surface-overlay)'"
-            :hoverBgColor="'var(--surface-hover)'"
-            :iconColor="'var(--primary-color)'"
-            @click="navigateTo('/chat')"
-            class="ml-3"
-            title="Message"
-          />
+          <ButtonNavbar v-if="user" icon="pi pi-inbox" :bgColor="'var(--surface-overlay)'"
+            :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'" @click="navigateTo('/chat')"
+            class="ml-3" title="Message" />
           <!-- Notifications -->
-          <ButtonNavbar
-            v-if="user"
-            icon="pi pi-bell"
-            :bgColor="'var(--surface-overlay)'"
-            :hoverBgColor="'var(--surface-hover)'"
-            :iconColor="'var(--primary-color)'"
-            @click="navigateTo('/feed')"
-            class="ml-3"
-            title="Notifications"
-          />
+          <ButtonNavbar v-if="user" icon="pi pi-bell" :bgColor="'var(--surface-overlay)'"
+            :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'" @click="navigateTo('/feed')"
+            class="ml-3" title="Notifications" />
           <!-- Paramètres -->
-          <ButtonNavbar
-            v-if="user"
-            icon="pi pi-cog"
-            :bgColor="'var(--surface-overlay)'"
-            :hoverBgColor="'var(--surface-hover)'"
-            :iconColor="'var(--primary-color)'"
-            @click="openSettingsDialog"
-            class="ml-3"
-            title="Paramètres"
-          />
+          <ButtonNavbar v-if="user" icon="pi pi-cog" :bgColor="'var(--surface-overlay)'"
+            :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'" @click="openSettingsDialog"
+            class="ml-3" title="Paramètres" />
           <!-- SwitchColor -->
-          <SwitchColor
-            class="ml-3"
-            title="Thème"
-          />
+          <SwitchColor class="ml-3" title="Thème" />
         </div>
       </div>
     </div>
@@ -181,41 +124,15 @@
     <!-- Barre inférieure mobile (Home, Institution, Votation, Message) -->
     <div class="mobile-bottom-nav" v-if="user">
       <div class="flex justify-content-around align-items-center py-2 px-1">
-        <ButtonNavbar
-          icon="pi pi-home"
-          :bgColor="'var(--surface-overlay)'"
-          :hoverBgColor="'var(--surface-hover)'"
-          :iconColor="'var(--primary-color)'"
-          @click="navigateTo('/feed')"
-        />
-        <ButtonNavbar
-          icon="pi pi-bookmark"
-          :bgColor="'var(--surface-overlay)'"
-          :hoverBgColor="'var(--surface-hover)'"
-          :iconColor="'var(--primary-color)'"
-          @click="navigateTo('/institution')"
-        />
-        <ButtonNavbar
-          icon="pi pi-check"
-          :bgColor="'var(--surface-overlay)'"
-          :hoverBgColor="'var(--surface-hover)'"
-          :iconColor="'var(--primary-color)'"
-          @click="navigateTo('/votation')"
-        />
-        <ButtonNavbar
-          icon="pi pi-inbox"
-          :bgColor="'var(--surface-overlay)'"
-          :hoverBgColor="'var(--surface-hover)'"
-          :iconColor="'var(--primary-color)'"
-          @click="navigateTo('/chat')"
-        />
-        <ButtonNavbar
-          icon="pi pi-user"
-          :bgColor="'var(--surface-overlay)'"
-          :hoverBgColor="'var(--surface-hover)'"
-          :iconColor="'var(--primary-color)'"
-          @click="navigateTo('/profile/' + user.uid)"
-        />
+        <ButtonNavbar icon="pi pi-home" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
+          :iconColor="'var(--primary-color)'" @click="navigateTo('/feed')" />
+    
+        <ButtonNavbar icon="pi pi-book" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
+          :iconColor="'var(--primary-color)'" @click="navigateTo('/education')" />
+        <ButtonNavbar icon="pi pi-inbox" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
+          :iconColor="'var(--primary-color)'" @click="navigateTo('/chat')" />
+        <ButtonNavbar icon="pi pi-user" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
+          :iconColor="'var(--primary-color)'" @click="navigateTo('/profile/' + user.uid)" />
       </div>
     </div>
 
@@ -223,81 +140,36 @@
     <div v-if="showMobileMenuDrawer" class="mobile-menu-drawer">
       <div class="mobile-menu-drawer-content">
         <!-- Map -->
-        <ButtonNavbar
-          v-if="user"
-          icon="pi pi-map-marker"
-          :bgColor="'var(--surface-overlay)'"
-          :hoverBgColor="'var(--surface-hover)'"
-          :iconColor="'var(--primary-color)'"
-          @click="navigateTo('/map')"
-        />
+        <ButtonNavbar v-if="user" icon="pi pi-map-marker" :bgColor="'var(--surface-overlay)'"
+          :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'" @click="navigateTo('/map')" />
         <!-- Admin -->
-        <ButtonNavbar
-          v-if="user && hasAdminAccess"
-          icon="pi pi-user-plus"
-          :bgColor="'var(--surface-overlay)'"
-          :hoverBgColor="'var(--surface-hover)'"
-          :iconColor="'var(--primary-color)'"
-          @click="navigateTo('/admin')"
-        />
+        <ButtonNavbar v-if="user && hasAdminAccess" icon="pi pi-user-plus" :bgColor="'var(--surface-overlay)'"
+          :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'" @click="navigateTo('/admin')" />
         <!-- Notifications -->
-        <ButtonNavbar
-          v-if="user"
-          icon="pi pi-bell"
-          :bgColor="'var(--surface-overlay)'"
-          :hoverBgColor="'var(--surface-hover)'"
-          :iconColor="'var(--primary-color)'"
-          @click="navigateTo('/feed')"
-        />
+        <ButtonNavbar v-if="user" icon="pi pi-bell" :bgColor="'var(--surface-overlay)'"
+          :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'" @click="navigateTo('/feed')" />
         <!-- Paramètres -->
-        <ButtonNavbar
-          v-if="user"
-          icon="pi pi-cog"
-          :bgColor="'var(--surface-overlay)'"
-          :hoverBgColor="'var(--surface-hover)'"
-          :iconColor="'var(--primary-color)'"
-          @click="openSettingsDialog"
-        />
+        <ButtonNavbar v-if="user" icon="pi pi-cog" :bgColor="'var(--surface-overlay)'"
+          :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'" @click="openSettingsDialog" />
         <!-- SwitchColor -->
         <SwitchColor />
 
-        <Button
-          icon="pi pi-times"
-          class="p-button-rounded p-button-text mt-3"
-          label="Fermer"
-          @click="toggleMobileMenu"
-        />
+        <Button icon="pi pi-times" class="p-button-rounded p-button-text mt-3" label="Fermer"
+          @click="toggleMobileMenu" />
       </div>
     </div>
 
     <!-- Fenêtre de dialogue Paramètres -->
-    <Dialog
-      v-model:visible="isSettingsDialogVisible"
-      modal
-      header="Paramètre"
+    <Dialog v-model:visible="isSettingsDialogVisible" modal header="Paramètre"
       :style="{ width: '20rem', backgroundColor: 'var(--surface-card)', position: 'fixed', top: '100px', right: '20px' }"
-      :closable="true"
-      :baseZIndex="1000"
-    >
+      :closable="true" :baseZIndex="1000">
       <div class="flex flex-column gap-3">
-        <Button
-          label="Profile"
-          icon="pi pi-user"
-          class="w-full p-button-outlined p-button-contrast"
-          @click="navigateTo('/profile/' + user.uid)"
-        />
-        <Button
-          label="Paramètre"
-          icon="pi pi-cog"
-          class="w-full p-button-outlined p-button-contrast"
-          @click="navigateTo('/settings')"
-        />
-        <Button
-          label="Se déconnecter"
-          icon="pi pi-power-off"
-          class="w-full p-button-outlined p-button-danger"
-          @click="logout"
-        />
+        <Button label="Profile" icon="pi pi-user" class="w-full p-button-outlined p-button-contrast"
+          @click="navigateTo('/profile/' + user.uid)" />
+        <Button label="Paramètre" icon="pi pi-cog" class="w-full p-button-outlined p-button-contrast"
+          @click="navigateTo('/settings')" />
+        <Button label="Se déconnecter" icon="pi pi-power-off" class="w-full p-button-outlined p-button-danger"
+          @click="logout" />
       </div>
     </Dialog>
   </div>
@@ -320,6 +192,7 @@ const showSearchBar = ref(false);
 const isSettingsDialogVisible = ref(false);
 const userRoles = ref(null);
 const hasAdminAccess = ref(false);
+const hasOptions = ref(false);
 
 const showMobileSearch = ref(false);
 const showMobileMenuDrawer = ref(false);
@@ -381,6 +254,7 @@ setPersistence(auth, browserLocalPersistence)
             if (userData.Roles) {
               userRoles.value = userData.Roles;
               hasAdminAccess.value = !!userRoles.value.admin || !!userRoles.value.editor || !!userRoles.value.viewer;
+              hasOptions.value = ! !userRoles.value.option;
             }
           }
         } catch (error) {

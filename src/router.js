@@ -56,10 +56,25 @@ import DocumentsPFP from '@/components/Home/DocumentsPFP.vue'
 import Index from '@/views/apps/tasklist/Index.vue'
 import IndexChat from '@/views/apps/chat/IndexChat.vue'
 import CommunityInfo from '@/components/Social/CommunityInfo.vue'; // Import du composant Infos
+import EducationManagement from '@/components/Education/EducationManagement.vue'; // Import du composant Infos
+import EducationView from '@/components/Education/DigitalHealthB22Option/EducationView.vue'; // Import du composant Infos
+import TBChrisView from '@/components/Education/TBChris/TBChrisView.vue'; // Import du composant Infos
 
 // Define your routes
 const routes = [
+  {
+    path: '/digital-health-view',
+    name: 'digital-health-view',
+    component: EducationView, // importé ou lazy-loaded
+  },
+  {
+    path: '/tb-capsules',
+    name: 'tb-capsules',
+    component: TBChrisView, // importé ou lazy-loaded
+  }
+,
   { path: '/', component: LoginHome, name: 'LoginHome',   props: true   }, // Fil d'actualité
+  { path: '/education', component: EducationManagement, name: 'EducationManagement',   props: true, meta: { requiresAuth: true } }, // Fil d'actualité
   { path: '/feed', component: NewsFeed, name: 'NewsFeed',   props: true, meta: { requiresAuth: true } }, // Fil d'actualité
   { path: '/mention/:group', component: MentionGroupPage, name: 'MentionGroupPage', props: true, meta: { requiresAuth: true, requiredRole: true }},
   { path: '/hashtag/:hashtag', component: HashtagPage, name: 'HashtagPage', props: true, meta: { requiresAuth: true } },
