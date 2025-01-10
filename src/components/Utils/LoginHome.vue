@@ -1,3 +1,4 @@
+
 <template>
   <div class="flex flex-column lg:flex-row justify-content-center align-items-center h-screen bg-surface-ground px-2 lg:px-0">
     <!-- Conteneur principal -->
