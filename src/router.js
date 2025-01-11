@@ -61,6 +61,9 @@ import EducationView from '@/components/Education/DigitalHealthB22Option/Educati
 import TBChrisView from '@/components/Education/TBChris/TBChrisView.vue'; // Import du composant Infos
 import PlanningView from '@/components/Planning/PlanningView.vue'; // Import du composant Infos
 import EportfolioManagement from '@/components/Eportfolio/EportfolioManagement.vue'; // Import du composant Infos
+import GestionSalleManagement from '@/components/Room/GestionSalleManagement.vue'; // Import du composant Infos
+import GestionMaterielManagement from '@/components/Material/GestionMaterielManagement.vue'; // Import du composant Infos
+import SeriousGameManagement from '@/components/SeriousGame/SeriousGameManagement.vue'; // Import du composant Infos
 
 // Define your routes
 const routes = [
@@ -74,6 +77,24 @@ const routes = [
     name: 'planning',
     component: PlanningView, // importé ou lazy-loaded
   },
+  {
+    path: '/salles',
+    name: 'salles',
+    component: GestionSalleManagement, // importé ou lazy-loaded
+  },
+
+  {
+    path: '/seriousgamemanagement',
+    name: 'seriousgamemanagement',
+    component: SeriousGameManagement, // importé ou lazy-loaded
+  },
+  
+  {
+    path: '/materials',
+    name: 'materials',
+    component: GestionMaterielManagement, // importé ou lazy-loaded
+  },
+  
   {
     path: '/eportfolio',
     name: 'Eportfolio',

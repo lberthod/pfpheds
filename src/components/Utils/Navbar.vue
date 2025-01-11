@@ -44,7 +44,7 @@
 
             <li v-if="user && hasOptions || hasAdminAccess" class="mx-3">
               <ButtonNavbar icon="pi pi-compass" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
-                :iconColor="'var(--primary-color)'" @click="navigateTo('/education')" title="Gestion des salles" />
+                :iconColor="'var(--primary-color)'" @click="navigateTo('/salles')" title="Gestion des salles" />
             </li>
 
 
@@ -56,12 +56,12 @@
             
             <li v-if="user && hasOptions || hasAdminAccess" class="mx-3">
               <ButtonNavbar icon="pi pi-table" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
-                :iconColor="'var(--primary-color)'" @click="navigateTo('/education')" title="Gestion du materiel" />
+                :iconColor="'var(--primary-color)'" @click="navigateTo('/materials')" title="Gestion du materiel" />
             </li>
 
             <li v-if="user && hasOptions || hasAdminAccess" class="mx-3">
               <ButtonNavbar icon="pi pi-star-fill" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
-                :iconColor="'var(--primary-color)'" @click="navigateTo('/education')" title="Serious Game" />
+                :iconColor="'var(--primary-color)'" @click="navigateTo('/seriousgamemanagement')" title="Serious Game" />
             </li>
             <li v-if="user && hasOptions || hasAdminAccess" class="mx-3">
               <ButtonNavbar icon="pi pi-calendar-plus" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
