@@ -118,8 +118,12 @@ import BlockViewer from '@/components/BlockViewer.vue';
 import '@/assets/styles.scss';
 import "primeflex/primeflex.css";
 
+
+import { createPinia } from 'pinia'
+
 // Create Vue App
 const app = createApp(App);
+const pinia = createPinia()
 
 // Plugins
 app.use(router);
@@ -127,6 +131,7 @@ app.use(PrimeVue, { ripple: true });
 app.use(ToastService);
 app.use(DialogService);
 app.use(ConfirmationService);
+app.use(pinia);
 
 // Reactive User State
 const userState = reactive({

@@ -60,13 +60,178 @@ import EducationManagement from '@/components/Education/EducationManagement.vue'
 import EducationView from '@/components/Education/DigitalHealthB22Option/EducationView.vue'; // Import du composant Infos
 import TBChrisView from '@/components/Education/TBChris/TBChrisView.vue'; // Import du composant Infos
 import PlanningView from '@/components/Planning/PlanningView.vue'; // Import du composant Infos
-import EportfolioManagement from '@/components/Eportfolio/EportfolioManagement.vue'; // Import du composant Infos
 import GestionSalleManagement from '@/components/Room/GestionSalleManagement.vue'; // Import du composant Infos
 import GestionMaterielManagement from '@/components/Material/GestionMaterielManagement.vue'; // Import du composant Infos
 import SeriousGameManagement from '@/components/SeriousGame/SeriousGameManagement.vue'; // Import du composant Infos
 
-// Define your routes
+// E-Portfolio Layout & Pages
+import EportfolioHome from '@/components/Eportfolio/pages/EportfolioHome.vue';
+import EportfolioManagement from '@/components/Eportfolio/pages/EportfolioManagement.vue';
+import EportfolioLayout from '@/components/Eportfolio/layouts/EportfolioLayout.vue';
+import EportfolioNotFound from '@/components/Eportfolio/pages/EportfolioNotFound.vue';
+import EportfolioNotAuthorized from '@/components/Eportfolio/pages/EportfolioNotAuthorized.vue';
+
+// Dynamic Imports for e-portfolio roles
+const StudentDashboard = () => import('@/components/Eportfolio/roles/student/StudentDashboard.vue');
+const StudentPortfolioView = () => import('@/components/Eportfolio/roles/student/StudentPortfolioView.vue');
+const StudentProjects = () => import('@/components/Eportfolio/roles/student/StudentProjects.vue');
+const StudentCompetencies = () => import('@/components/Eportfolio/roles/student/StudentCompetencies.vue');
+const StudentReflections = () => import('@/components/Eportfolio/roles/student/StudentReflections.vue');
+const StudentPathwayView = () => import('@/components/Eportfolio/roles/student/StudentPathwayView.vue');
+const StudentEvidenceUploader = () => import('@/components/Eportfolio/roles/student/StudentEvidenceUploader.vue');
+const StudentCertifications = () => import('@/components/Eportfolio/roles/student/StudentCertifications.vue');
+
+const TeacherDashboard = () => import('@/components/Eportfolio/roles/teacher/TeacherDashboard.vue');
+const TeacherPortfolioReview = () => import('@/components/Eportfolio/roles/teacher/TeacherPortfolioReview.vue');
+const TeacherCompetencyGrid = () => import('@/components/Eportfolio/roles/teacher/TeacherCompetencyGrid.vue');
+const TeacherFeedback = () => import('@/components/Eportfolio/roles/teacher/TeacherFeedback.vue');
+const TeacherPathwayManager = () => import('@/components/Eportfolio/roles/teacher/TeacherPathwayManager.vue');
+
+const AdminDashboard = () => import('@/components/Eportfolio/roles/admin/AdminDashboard.vue');
+const AdminPathwayOverview = () => import('@/components/Eportfolio/roles/admin/AdminPathwayOverview.vue');
+const AdminGlobalView = () => import('@/components/Eportfolio/roles/admin/AdminGlobalView.vue');
+
+// Practitioner
+const PractitionerDashboard = () => import('@/components/Eportfolio/roles/practitioner/PractitionerDashboard.vue');
+const PractitionerStageValidation = () => import('@/components/Eportfolio/roles/practitioner/PractitionerStageValidation.vue');
+const PractitionerFeedback = () => import('@/components/Eportfolio/roles/practitioner/PractitionerFeedback.vue');
+
+
+// ... etc. (other imported components)...
+
 const routes = [
+  {
+    path: '/eportfolio',
+    component: EportfolioLayout,
+    children: [
+      {
+        path: '',
+        name: 'EportfolioHome',
+        component: EportfolioHome
+      },
+      {
+        path: 'management',
+        name: 'EportfolioManagement',
+        component: EportfolioManagement
+      },
+      // Student
+      {
+        path: 'student/dashboard',
+        name: 'StudentDashboard',
+        component: StudentDashboard
+      },
+      {
+        path: 'student/portfolio',
+        name: 'StudentPortfolioView',
+        component: StudentPortfolioView
+      },
+      {
+        path: 'student/projects',
+        name: 'StudentProjects',
+        component: StudentProjects
+      },
+      {
+        path: 'student/certifications',
+        name: 'StudentCertifications',
+        component: StudentCertifications
+      },
+      {
+        path: 'student/competencies',
+        name: 'StudentCompetencies',
+        component: StudentCompetencies
+      },
+      {
+        path: 'student/reflections',
+        name: 'StudentReflections',
+        component: StudentReflections
+      },
+      {
+        path: 'student/pathway',
+        name: 'StudentPathwayView',
+        component: StudentPathwayView
+      },
+      {
+        path: 'student/evidence',
+        name: 'StudentEvidenceUploader',
+        component: StudentEvidenceUploader
+      },
+
+      // Teacher
+      {
+        path: 'teacher/dashboard',
+        name: 'TeacherDashboard',
+        component: TeacherDashboard
+      },
+      {
+        path: 'teacher/portfolio-review',
+        name: 'TeacherPortfolioReview',
+        component: TeacherPortfolioReview
+      }
+,      
+      {
+        path: 'teacher/competency-grid',
+        name: 'TeacherCompetencyGrid',
+        component: TeacherCompetencyGrid
+      },
+      {
+        path: 'teacher/feedback',
+        name: 'TeacherFeedback',
+        component: TeacherFeedback
+      },
+      {
+        path: 'teacher/pathway-manager',
+        name: 'TeacherPathwayManager',
+        component: TeacherPathwayManager
+      },
+
+      // Admin
+      {
+        path: 'admin/dashboard',
+        name: 'AdminDashboard',
+        component: AdminDashboard
+      },
+      {
+        path: 'admin/pathway-overview',
+        name: 'AdminPathwayOverview',
+        component: AdminPathwayOverview
+      },
+      {
+        path: 'admin/global-view',
+        name: 'AdminGlobalView',
+        component: AdminGlobalView
+      },
+
+      // Practitioner
+      {
+        path: 'practitioner/dashboard',
+        name: 'PractitionerDashboard',
+        component: PractitionerDashboard
+      },
+      {
+        path: 'practitioner/stage-validation',
+        name: 'PractitionerStageValidation',
+        component: PractitionerStageValidation
+      },
+      {
+        path: 'practitioner/feedback',
+        name: 'PractitionerFeedback',
+        component: PractitionerFeedback
+      },
+
+      // Access refused
+      {
+        path: 'not-authorized',
+        name: 'EportfolioNotAuthorized',
+        component: EportfolioNotAuthorized
+      },
+      // Catch-all for e-portfolio
+      {
+        path: ':catchAll(.*)*',
+        name: 'EportfolioNotFound',
+        component: EportfolioNotFound
+      }
+    ]
+  },
   {
     path: '/digital-health-view',
     name: 'digital-health-view',
@@ -95,11 +260,7 @@ const routes = [
     component: GestionMaterielManagement, // importé ou lazy-loaded
   },
   
-  {
-    path: '/eportfolio',
-    name: 'Eportfolio',
-    component: EportfolioManagement, // importé ou lazy-loaded
-  },
+
   {
     path: '/tb-capsules',
     name: 'tb-capsules',

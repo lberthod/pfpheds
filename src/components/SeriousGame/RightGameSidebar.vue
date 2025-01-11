@@ -1,99 +1,84 @@
 <template>
-    <div class="right-game-sidebar">
-      <header>
-        <h2>Statistiques & Paramètres</h2>
-      </header>
-  
-      <section class="score-block">
-        <h3>Score Actuel</h3>
-        <p class="score">{{ score }}</p>
-      </section>
-  
-      <section class="speed-block">
-        <h3>Vitesse de déplacement</h3>
-        <input 
-          type="range" 
-          min="1" 
-          max="10" 
-          v-model="localSpeed"
-        />
-        <p>{{ localSpeed }}</p>
-        <button @click="applySpeed">Appliquer</button>
-      </section>
+  <div class="right-game-sidebar">
+    <header>
+      <h2>Navigation & Paramètres</h2>
+    </header>
+
+    <div class="step-nav-block">
+      <button @click="game.goPrevStep">← Précédent</button>
+      <button @click="game.goNextStep">Suivant →</button>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    name: 'RightGameSidebar',
-    props: {
-      score: {
-        type: Number,
-        default: 0,
-      },
-      gameSpeed: {
-        type: Number,
-        default: 5,
-      },
-    },
-    data() {
-      return {
-        localSpeed: this.gameSpeed, // copie locale pour le <input>
-      };
-    },
-    watch: {
-      // Si la prop gameSpeed change, on met à jour la slide
-      gameSpeed(newVal) {
-        this.localSpeed = newVal;
-      },
-    },
-    methods: {
-      applySpeed() {
-        this.$emit('change-speed', parseInt(this.localSpeed, 10));
-      },
-    },
-  };
-  </script>
-  
-  <style scoped>
-  .right-game-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .right-game-sidebar header h2 {
-    margin: 0;
-    font-size: 1.2rem;
-    color: #2c3e50;
-  }
-  
-  .score-block h3,
-  .speed-block h3 {
-    margin-bottom: 0.5rem;
-    color: #34495e;
-  }
-  
-  .score {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: #e74c3c;
-  }
-  
-  input[type="range"] {
-    width: 100%;
-    margin-bottom: 0.25rem;
-  }
-  button {
-    background-color: #27ae60;
-    border: none;
-    color: #fff;
-    padding: 0.4rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  button:hover {
-    background-color: #1f8f50;
-  }
-  </style>
-  
+
+    <div class="go-to-step-block">
+      <label for="step-select">Aller à l’étape :</label>
+      <select id="step-select" v-model="chosenStep" @change="goToSelectedStep">
+        <option v-for="step in game.totalSteps" :key="step" :value="step">
+          Étape {{ step }}
+        </option>
+      </select>
+    </div>
+  </div>
+</template>
+
+<script>
+import { ref } from 'vue' // <-- Importer ref depuis Vue
+import { useGameStore } from '@/stores/gameStore'
+
+export default {
+  name: 'RightGameSidebar',
+  setup() {
+    const game = useGameStore()
+
+    // Valeur locale pour le <select>
+    const chosenStep = ref(game.currentStep)
+
+    // Quand on change la step dans le select
+    const goToSelectedStep = () => {
+      game.goToStep(chosenStep.value)
+    }
+
+    return {
+      game,
+      chosenStep,
+      goToSelectedStep,
+    }
+  },
+}
+</script>
+
+<style scoped>
+.right-game-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.step-nav-block {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.step-nav-block button {
+  background-color: #3498db;
+  border: none;
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.step-nav-block button:hover {
+  background-color: #2980b9;
+}
+
+.go-to-step-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+select {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0.2rem 0.4rem;
+}
+</style>
