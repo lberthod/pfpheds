@@ -3,9 +3,10 @@
     <div class="bg-circle opacity-50" :style="{ top: '-200px', left: '-700px' }"></div>
     <div class="bg-circle hidden lg:flex" :style="{ top: '50px', right: '-800px', transform: 'rotate(60deg)' }"></div>
 
-    <!-- Version Web (inchangée) -->
-    <div class="landing-wrapper desktop-nav">
-      <div class="flex align-items-center justify-content-between relative lg:static py-4 px-1">
+    <!-- Version Web (inchangée) 
+    <div class="landing-wrapper desktop-nav">-->
+      <div>
+        <div class="flex align-items-center justify-content-between relative lg:static py-4 px-1">
         <!-- Logo (gauche) -->
         <div class="flex-shrink-0 px-8 mx-8">
           <a class="cursor-pointer" @click="navigateTo('/feed')">
@@ -24,25 +25,51 @@
             <li v-if="user & hasAdminAccess" class="mx-3">
               <ButtonNavbar icon="pi pi-bookmark" :bgColor="'var(--surface-overlay)'"
                 :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'"
-                @click="navigateTo('/institution')" title="Institutions" />
+                @click="navigateTo('/institution')" title="Institutions partenaires" />
             </li>
             <li v-if="user && hasAdminAccess" class="mx-3">
               <ButtonNavbar icon="pi pi-check" :bgColor="'var(--surface-overlay)'"
                 :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'"
-                @click="navigateTo('/votation')" title="Votation" />
+                @click="navigateTo('/votation')" title="Votation PFP" />
             </li>
             <li v-if="user && hasAdminAccess" class="mx-3">
               <ButtonNavbar icon="pi pi-map-marker" :bgColor="'var(--surface-overlay)'"
                 :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'" @click="navigateTo('/map')"
                 title="Map" />
             </li>
-            <li v-if="user && hasOptions" class="mx-3">
+            <li v-if="user && hasOptions || hasAdminAccess" class="mx-3">
               <ButtonNavbar icon="pi pi-book" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
-                :iconColor="'var(--primary-color)'" @click="navigateTo('/education')" title="Admin" />
+                :iconColor="'var(--primary-color)'" @click="navigateTo('/education')" title="Capsules Asynchrones" />
+            </li>
+
+            <li v-if="user && hasOptions || hasAdminAccess" class="mx-3">
+              <ButtonNavbar icon="pi pi-compass" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
+                :iconColor="'var(--primary-color)'" @click="navigateTo('/education')" title="Gestion des salles" />
+            </li>
+
+
+            
+            <li v-if="user && hasOptions || hasAdminAccess" class="mx-3">
+              <ButtonNavbar icon="pi pi-folder-open" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
+                :iconColor="'var(--primary-color)'" @click="navigateTo('/eportfolio')" title="E-Portfolio" />
+            </li>
+            
+            <li v-if="user && hasOptions || hasAdminAccess" class="mx-3">
+              <ButtonNavbar icon="pi pi-table" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
+                :iconColor="'var(--primary-color)'" @click="navigateTo('/education')" title="Gestion du materiel" />
+            </li>
+
+            <li v-if="user && hasOptions || hasAdminAccess" class="mx-3">
+              <ButtonNavbar icon="pi pi-star-fill" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
+                :iconColor="'var(--primary-color)'" @click="navigateTo('/education')" title="Serious Game" />
+            </li>
+            <li v-if="user && hasOptions || hasAdminAccess" class="mx-3">
+              <ButtonNavbar icon="pi pi-calendar-plus" :bgColor="'var(--surface-overlay)'" :hoverBgColor="'var(--surface-hover)'"
+                :iconColor="'var(--primary-color)'" @click="navigateTo('/planning')" title="Gestion du programme" />
             </li>
 
             <li v-if="user && hasAdminAccess" class="mx-3">
-              <ButtonNavbar icon="pi pi-user-plus" :bgColor="'var(--surface-overlay)'"
+              <ButtonNavbar icon="pi pi-sitemap" :bgColor="'var(--surface-overlay)'"
                 :hoverBgColor="'var(--surface-hover)'" :iconColor="'var(--primary-color)'" @click="navigateTo('/admin')"
                 title="Admin" />
             </li>

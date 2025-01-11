@@ -59,6 +59,8 @@ import CommunityInfo from '@/components/Social/CommunityInfo.vue'; // Import du 
 import EducationManagement from '@/components/Education/EducationManagement.vue'; // Import du composant Infos
 import EducationView from '@/components/Education/DigitalHealthB22Option/EducationView.vue'; // Import du composant Infos
 import TBChrisView from '@/components/Education/TBChris/TBChrisView.vue'; // Import du composant Infos
+import PlanningView from '@/components/Planning/PlanningView.vue'; // Import du composant Infos
+import EportfolioManagement from '@/components/Eportfolio/EportfolioManagement.vue'; // Import du composant Infos
 
 // Define your routes
 const routes = [
@@ -66,6 +68,16 @@ const routes = [
     path: '/digital-health-view',
     name: 'digital-health-view',
     component: EducationView, // importé ou lazy-loaded
+  },
+  {
+    path: '/planning',
+    name: 'planning',
+    component: PlanningView, // importé ou lazy-loaded
+  },
+  {
+    path: '/eportfolio',
+    name: 'Eportfolio',
+    component: EportfolioManagement, // importé ou lazy-loaded
   },
   {
     path: '/tb-capsules',
