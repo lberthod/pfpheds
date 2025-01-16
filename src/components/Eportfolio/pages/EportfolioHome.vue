@@ -1,75 +1,125 @@
-<!-- pages/EportfolioHome.vue -->
 <template>
   <div class="eportfolio-home">
     <header class="header-section">
       <h2>Welcome to Your E-Portfolio</h2>
-      <p class="subtitle">A quick overview of global statistics and helpful links</p>
+      <p class="subtitle">Quick overview of your stats & helpful links</p>
     </header>
 
-    <section class="stats-section">
-      <div class="stats-card">
-        <h3>Total Projects</h3>
-        <p>{{ totalProjects }}</p>
-      </div>
+    <!-- Indicateur de chargement ou d'erreur -->
+    <div v-if="loading" class="loading">Loading data...</div>
+    <div v-else-if="error" class="error">Error: {{ error }}</div>
+    <div v-else>
+      <!-- Statistiques simples -->
+      <section class="stats-section">
+        <div class="stats-card">
+          <h3>Total Projects</h3>
+          <p>{{ totalProjects }}</p>
+        </div>
+        <div class="stats-card">
+          <h3>Competencies</h3>
+          <p>{{ totalCompetencies }}</p>
+        </div>
+        <div class="stats-card">
+          <h3>Reflections</h3>
+          <p>{{ totalReflections }}</p>
+        </div>
+      </section>
 
-      <div class="stats-card">
-        <h3>Completed Pathways</h3>
-        <p>{{ completedPathways }}</p>
-      </div>
-
-      <div class="stats-card">
-        <h3>Pending Feedback</h3>
-        <p>{{ pendingFeedback }}</p>
-      </div>
-    </section>
-
-    <section class="links-section">
-      <h3>Quick Links</h3>
-      <ul>
-        <li><router-link to="/eportfolio/management">Manage E-Portfolio</router-link></li>
-        <li><router-link to="/eportfolio/student">Student Dashboard</router-link></li>
-        <li><router-link to="/eportfolio/teacher">Teacher Dashboard</router-link></li>
-        <!-- ... add more links as needed -->
-      </ul>
-    </section>
+      <!-- Quelques liens rapides -->
+      <section class="links-section">
+        <h3>Quick Links</h3>
+        <ul>
+          <li>
+            <router-link to="/eportfolio/management">Manage E-Portfolio</router-link>
+          </li>
+          <li>
+            <router-link to="/eportfolio/student/dashboard">Student Dashboard</router-link>
+          </li>
+          <li>
+            <router-link to="/eportfolio/teacher/dashboard">Teacher Dashboard</router-link>
+          </li>
+          <li>
+            <router-link to="/eportfolio/practitioner/dashboard">Practitioner Dashboard</router-link>
+          </li>
+        </ul>
+      </section>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'EportfolioHome',
-  setup() {
-    // Example reactive data
-    const totalProjects = 8;           // Or fetch from store or API
-    const completedPathways = 2;       // ...
-    const pendingFeedback = 5;         // ...
+<script setup>
+import { ref, onMounted } from 'vue';
+import { db, auth } from '@/firebase.js';
+import {
+  ref as dbRef,
+  get,
+  child
+} from 'firebase/database';
 
-    return {
-      totalProjects,
-      completedPathways,
-      pendingFeedback
-    };
+const loading = ref(false);
+const error = ref('');
+const totalProjects = ref(0);
+const totalCompetencies = ref(0);
+const totalReflections = ref(0);
+
+/**
+ * Charge un résumé : nombre de projets, compétences, réflexions
+ */
+async function loadHomeData() {
+  const user = auth.currentUser;
+  if (!user) {
+    error.value = 'Not logged in.';
+    return;
   }
-};
+
+  loading.value = true;
+  error.value = '';
+
+  try {
+    const rootRef = dbRef(db);
+    const uid = user.uid;
+
+    const [snapProj, snapComp, snapRefl] = await Promise.all([
+      get(child(rootRef, `eportfolio/projects/${uid}`)),
+      get(child(rootRef, `eportfolio/competencies/${uid}`)),
+      get(child(rootRef, `eportfolio/reflections/${uid}`))
+    ]);
+
+    totalProjects.value = snapProj.exists() ? Object.keys(snapProj.val()).length : 0;
+    totalCompetencies.value = snapComp.exists() ? Object.keys(snapComp.val()).length : 0;
+    totalReflections.value = snapRefl.exists() ? Object.keys(snapRefl.val()).length : 0;
+  } catch (err) {
+    error.value = err.message;
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => {
+  loadHomeData();
+});
 </script>
 
 <style scoped>
 .eportfolio-home {
   padding: 1rem;
-  background-color: #fafafa;
+  background-color: #f0f2f5;
+  color: #000;
 }
-
-.header-section h2 {
-  margin: 0;
-  font-size: 1.8rem;
-  color: #2c3e50;
+.header-section {
+  text-align: center;
+  margin-bottom: 1rem;
 }
 .subtitle {
-  font-size: 1rem;
   color: #7f8c8d;
   margin-top: 0.5rem;
 }
-
+.loading {
+  color: #555;
+}
+.error {
+  color: red;
+}
 .stats-section {
   display: flex;
   gap: 1rem;
@@ -90,9 +140,7 @@ export default {
   font-size: 1.4rem;
   color: #2980b9;
 }
-
 .links-section h3 {
-  font-size: 1.2rem;
   margin-bottom: 0.5rem;
 }
 .links-section ul {

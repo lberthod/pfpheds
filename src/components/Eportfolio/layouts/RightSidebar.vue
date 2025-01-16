@@ -1,31 +1,23 @@
-<!-- layouts/RightSidebar.vue -->
 <template>
   <aside class="right-sidebar">
     <h2 class="sidebar-title">Notifications</h2>
     <section class="notification-block">
       <p>No new notifications.</p>
-      <!-- You can render a list of actual notifications or messages here -->
+      <!-- Ou un v-for si on veut lister des notifs stockées en DB -->
     </section>
 
     <h2 class="sidebar-title">Settings</h2>
     <section class="settings-block">
-      <p>Some quick user settings or links to account preferences, etc.</p>
+      <p>Some quick user settings or account preferences, etc.</p>
       <button @click="showAlert">Example Action</button>
     </section>
   </aside>
 </template>
 
-<script>
-export default {
-  name: 'RightSidebar',
-  setup() {
-    const showAlert = () => {
-      alert('Settings action triggered!');
-    };
-
-    return { showAlert };
-  },
-};
+<script setup>
+function showAlert() {
+  alert('Settings action triggered!');
+}
 </script>
 
 <style scoped>
@@ -34,7 +26,6 @@ export default {
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 1rem;
-  /* Force text to be black */
   color: #000;
 }
 
